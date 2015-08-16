@@ -71,39 +71,11 @@ public class ImageParser {
         Mat src3 = new Mat(src2.size(), CvType.CV_8UC1);
         Imgproc.adaptiveThreshold(src2, src3, 255,Imgproc.ADAPTIVE_THRESH_MEAN_C, Imgproc.THRESH_BINARY_INV, 15, 4);
 
-        //Do flood fill
-        //Todo : do flood fill here
-//        Mat outerBox = new Mat(src.size(), CvType.CV_8UC1);
-//        Mat outerboxMask = new Mat(src.size(), CvType.CV_8UC1);
-//        Mat outerboxMaskMax = new Mat(src.size(), CvType.CV_8UC1);
-//        int maxArea = 0;
-//        for(int y=0;y<outerBox.size().height;y++)
-//        {
-//            for(int x=0;x<outerBox.size().width;x++)
-//            {
-////                if(row[x]==64 && x!=maxPt.x && y!=maxPt.y)
-////                {
-//                    Mat mMask = Mat.zeros(outerBox.size(), CvType.CV_8UC1);
-//                    int area = Imgproc.floodFill(outerBox,mMask, new Point(x,y),new Scalar(0,0,64));
-//                    if(area>maxArea){
-//                        outerboxMaskMax = mMask.clone();
-//                    }
-//
-//
-////                    int area = floodFill(outerBox, new Point(x,y), new Scalar(0, 255, 0));
-////                }
-//            }
-//        }
-
-
-
-        //Detect edges of image usng Canny detector
-//        Mat lines = new Mat(src2.size(), CvType.CV_8UC1);
-//        Canny(src3, lines, lineDetect_threshold1, lineDetect_threshold2);
+        //TODO : may be do a floodfill here
 
         //Find lines in the image
         int threshold = 100;
-        int minLineSize = 60;
+        int minLineSize = 600;
         int lineGap = 60;
         Mat lines = new Mat();
         Imgproc.HoughLinesP(src3, lines, 1, Math.PI/180, threshold, minLineSize, lineGap);
