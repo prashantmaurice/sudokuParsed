@@ -102,18 +102,18 @@ public class ImageParser {
 //        Canny(src3, lines, lineDetect_threshold1, lineDetect_threshold2);
 
         //Find lines in the image
-        int threshold = 20;
-        int minLineSize = 6;
-        int lineGap = 10;
+        int threshold = 100;
+        int minLineSize = 60;
+        int lineGap = 60;
         Mat lines = new Mat();
-        Imgproc.HoughLinesP(src3, lines, 5, Math.PI/180, threshold, minLineSize, lineGap);
+        Imgproc.HoughLinesP(src3, lines, 1, Math.PI/180, threshold, minLineSize, lineGap);
 
         //draw color lines on the image
         Mat color = new Mat();
         Imgproc.cvtColor(src3, color, Imgproc.COLOR_GRAY2BGR);
-        for (int x = 0; x < lines.cols(); x++)
+        for (int x = 0; x < lines.rows(); x++)
         {
-            double[] vec = lines.get(0, x);
+            double[] vec = lines.get(x,0);
             double x1 = vec[0],
                     y1 = vec[1],
                     x2 = vec[2],
@@ -124,6 +124,7 @@ public class ImageParser {
             Imgproc.line(color, start, end, new Scalar(255, 0, 0), 3);
             Log.d(TAG, "Lines detected : " + start.toString() + " : " + end.toString());
         }
+        Log.d(TAG, lines.rows()+" lines detected in image");
 
 
         Imgproc.line(color, new Point(0,100), new Point(900,100), new Scalar(255, 250,0), 30);
