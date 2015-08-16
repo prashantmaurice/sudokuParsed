@@ -1,6 +1,7 @@
 package com.maurice.app.sudokuapp;
 
-import android.graphics.drawable.BitmapDrawable;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -31,7 +32,16 @@ public class MainActivity extends AppCompatActivity{
 
             imageView = (ImageView) findViewById(R.id.imageView);
             imageparser = new ImageParser(this);
-            imageView.setBackground(new BitmapDrawable(imageparser.serveImage()));
+
+
+            //Source Image Bitmap
+            Bitmap sourceBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.sample);
+
+            //Get rendered bitmap
+            Bitmap renderedBitmap = imageparser.parseBitmap(sourceBitmap);
+
+            //Show rendered bitmap
+            imageView.setImageBitmap(renderedBitmap);
         }else{
             Log.e("ERROR","OpenCVLoader not initialized");
         }
