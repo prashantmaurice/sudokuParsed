@@ -1,10 +1,9 @@
 # sudokuParsed
 
-To use this project just follow the below instructions :
 
 
-# Contributors
+## Developed By
 
-Prashant Maurice
-Umang Ganvir
-Krishna Chanitanya
+* Prashant Maurice - [sabertoothmaurice@gmail.com](mailto:sabertoothmaurice@gmail.com)
+* Umang Ganvir
+* Krishna Chanitanya
