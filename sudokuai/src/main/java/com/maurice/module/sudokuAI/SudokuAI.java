@@ -13,5 +13,12 @@ public class SudokuAI {
         return result;
     }
 
+    public static void main(String[] args){
+        //Use this for testing your module
+        System.out.print("Started");
+    }
+
+
+
 
 }
