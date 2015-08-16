@@ -1,28 +1,40 @@
 package com.maurice.app.sudokuapp;
 
+import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.ImageView;
 
-import org.opencv.core.Mat;
+import com.maurice.app.sudokuapp.ImageParser.ImageParser;
+
+import org.opencv.android.OpenCVLoader;
 
 public class MainActivity extends AppCompatActivity{
 
 //    static{ System.loadLibrary("opencv_java"); }
     static {
-//        if (!OpenCVLoader.initDebug()) {
+        if (!OpenCVLoader.initDebug()) {
 //            // Handle initialization error
-//        }
-        Mat mat;
+        }
     }
 
+    ImageView imageView;
+    ImageParser imageparser;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        if(OpenCVLoader.initDebug()){
 
-//        OpenCVLoader loader;
+            imageView = (ImageView) findViewById(R.id.imageView);
+            imageparser = new ImageParser(this);
+            imageView.setBackground(new BitmapDrawable(imageparser.serveImage()));
+        }else{
+            Log.e("ERROR","OpenCVLoader not initialized");
+        }
 
     }
 
