@@ -49,6 +49,9 @@ public class ImageParser {
         //Apply Transformations
         Mat result = processMat(mat);
 
+        //TODO :add sudokuAI module
+//        SudokuAI ai = new SudokuAI();
+
         //Convert back Mat to bitmap
         return GenUtils.convertMatToBitmap(result);
     }
