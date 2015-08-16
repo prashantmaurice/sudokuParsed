@@ -22,7 +22,7 @@ public class MainActivity extends AppCompatActivity{
         }
     }
 
-    ImageView imageView;
+    ImageView imageView,imageView2;
     ImageParser imageparser;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,6 +31,7 @@ public class MainActivity extends AppCompatActivity{
         if(OpenCVLoader.initDebug()){
 
             imageView = (ImageView) findViewById(R.id.imageView);
+            imageView2 = (ImageView) findViewById(R.id.imageView2);
             imageparser = new ImageParser(this);
 
 
@@ -42,6 +43,7 @@ public class MainActivity extends AppCompatActivity{
 
             //Show rendered bitmap
             imageView.setImageBitmap(renderedBitmap);
+            imageView2.setImageResource(R.drawable.sample);
         }else{
             Log.e("ERROR","OpenCVLoader not initialized");
         }
