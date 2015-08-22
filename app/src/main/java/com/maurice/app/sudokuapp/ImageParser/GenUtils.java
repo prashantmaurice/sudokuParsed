@@ -2,9 +2,12 @@ package com.maurice.app.sudokuapp.ImageParser;
 
 import android.graphics.Bitmap;
 
+import com.maurice.app.sudokuapp.ImageParser.models.LineSegment;
+
 import org.opencv.android.Utils;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
+import org.opencv.core.Point;
 import org.opencv.core.Scalar;
 
 /**
@@ -18,8 +21,45 @@ public class GenUtils {
         return mat;
     }
     public static Bitmap convertMatToBitmap(Mat mat){
-        Bitmap resultBitmap = Bitmap.createBitmap(mat.cols(),  mat.rows(),Bitmap.Config.ARGB_8888);;
+        Bitmap resultBitmap = Bitmap.createBitmap(mat.cols(), mat.rows(), Bitmap.Config.ARGB_8888);;
         Utils.matToBitmap(mat, resultBitmap);
         return resultBitmap;
+    }
+
+    public static Point intersectingPoint(LineSegment l1, LineSegment l2){
+        float x12 = (float) (l1.point1.x - l1.point2.x);
+        float x34 = (float) (l2.point1.x - l2.point2.x);
+        float y12 = (float) (l1.point1.y - l1.point2.y);
+        float y34 = (float) (l2.point1.y - l2.point2.y);
+
+        float c = x12 * y34 - y12 * x34;
+
+        if (Math.abs(c) < 0.01)
+        {
+            // No intersection
+            return new Point(0,0);
+        }
+        else
+        {
+            // Intersection
+            float a = (float) (l1.point1.x  * l1.point2.y - l1.point1.y * l1.point2.x);
+            float b = (float) (l2.point1.x * l2.point2.y - l2.point1.y  * l2.point2.x);
+
+            float x = (a * x34 - b * x12) / c;
+            float y = (a * y34 - b * y12) / c;
+
+            return new Point(x,y);
+        }
+    }
+    public static <T> String print2dArray(T[][] arr){
+        String printStr = "\n";
+        for(T[] row : arr){
+            for(T elem : row){
+                printStr += ""+elem.toString();
+            }
+            printStr+="\n";
+        }
+        return printStr;
+//        Log.d("Array",printStr);
     }
 }
