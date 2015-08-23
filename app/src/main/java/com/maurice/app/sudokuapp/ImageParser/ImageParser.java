@@ -7,9 +7,14 @@ import android.util.Log;
 import com.maurice.app.sudokuapp.ImageParser.models.LineSegment;
 import com.maurice.app.sudokuapp.ImageParser.models.Rectangle;
 
+import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
+import org.opencv.core.MatOfPoint;
+import org.opencv.core.MatOfPoint2f;
 import org.opencv.core.Point;
+import org.opencv.core.Rect;
+import org.opencv.core.RotatedRect;
 import org.opencv.core.Scalar;
 import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
@@ -87,8 +92,17 @@ public class ImageParser {
         Imgproc.adaptiveThreshold(src2, src3, 255, Imgproc.ADAPTIVE_THRESH_MEAN_C, Imgproc.THRESH_BINARY_INV, 15, 4);
         //TODO : may be do a floodfill here
 
+
+
+
         //find lines in the image
         ArrayList<LineSegment> segments = findLines(src3);
+
+        //remove original lines
+        for(LineSegment lineSegment : segments){
+//            Imgproc.line(color, lineSegment.point1, lineSegment.point2, new Scalar(Math.random()*255, Math.random()*255,Math.random()*255), 3);
+            Imgproc.line(src3, lineSegment.point1, lineSegment.point2, new Scalar(0, 0,0), 3);
+        }
 
         //Filtered Line segments : filter from around 130 segements to final 20
         ArrayList<LineSegment> filteredSegments = filterValidLineSegments(segments);
@@ -112,10 +126,34 @@ public class ImageParser {
         }
 
 //        Imgproc.line(color, new Point(0,100), new Point(900,100), new Scalar(255, 250,0), 30);
-        return boxesCrop[0][1];
+        return extractROI(boxesCrop[0][1]);
 //        return wrapPerspective(colorPic, new Rectangle(new Point(0, 0), new Point(300, 0), new Point(0, 600), new Point(300, 600)));
 //        return wrapPerspectiveCustom(colorPic, new Rectangle(100));
     }
+
+    private Mat extractROI(Mat mat){
+        RotatedRect rect = null;
+        Mat points = Mat.zeros(mat.size(),mat.type());
+        Core.findNonZero(mat, points);
+
+        MatOfPoint mpoints = new MatOfPoint(points);
+        MatOfPoint2f points2f = new MatOfPoint2f(mpoints.toArray());
+
+        if (points2f.rows() > 0) {
+            rect = Imgproc.minAreaRect(points2f);
+        }
+
+
+        Rect roi = new Rect();
+        roi.x = (int) (rect.center.x - (rect.size.width / 2));
+        roi.y = (int) (rect.center.y - (rect.size.height / 2));
+        roi.width = (int) rect.size.width;
+        roi.height = (int) rect.size.height;
+
+        // Crop the original image to the defined ROI
+        return wrapPerspectiveCustom(mat, new Rectangle(new Point(roi.x, roi.y), new Point(roi.x+roi.width, roi.y), new Point(roi.x, roi.y+roi.height), new Point(roi.x+roi.width, roi.y+roi.height)));
+    }
+
 
     private Rectangle[][] getRectanglesFromPoints(Point[][] points) {
         int rows = Arrays.asList(points).size();
