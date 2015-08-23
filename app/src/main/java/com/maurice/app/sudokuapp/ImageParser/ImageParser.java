@@ -100,7 +100,7 @@ public class ImageParser {
         Rectangle[][] rectangles = getRectanglesFromPoints(points);
 
         //get ImagesArray
-
+        Mat[][] boxesCrop = getIndividualBoxes(src3,rectangles);
 
         Mat colorPic = new Mat();
         Imgproc.cvtColor(src3, colorPic, Imgproc.COLOR_GRAY2BGR);
@@ -112,7 +112,7 @@ public class ImageParser {
         }
 
 //        Imgproc.line(color, new Point(0,100), new Point(900,100), new Scalar(255, 250,0), 30);
-        return wrapPerspectiveCustom(colorPic, rectangles[0][1]);
+        return boxesCrop[0][1];
 //        return wrapPerspective(colorPic, new Rectangle(new Point(0, 0), new Point(300, 0), new Point(0, 600), new Point(300, 600)));
 //        return wrapPerspectiveCustom(colorPic, new Rectangle(100));
     }
