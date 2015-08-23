@@ -125,9 +125,15 @@ public class ImageParser {
             Imgproc.line(colorPic, lineSegment.point1, lineSegment.point2, new Scalar(255, 0,0), 3);
         }
 
-//        Imgproc.line(color, new Point(0,100), new Point(900,100), new Scalar(255, 250,0), 30);
-        return extractROI(boxesCrop[0][1]);
+
+
+
+        DigitRecogniser digitRecogniser = new DigitRecogniser(mContext);
+//        return digitRecogniser.mapArray.get(0);
+        digitRecogniser.recogniseDigit(boxesCrop[0][1]);
+        return extractROI(boxesCrop[0][1]).mul(digitRecogniser.mapArray.get(0));
 //        return wrapPerspective(colorPic, new Rectangle(new Point(0, 0), new Point(300, 0), new Point(0, 600), new Point(300, 600)));
+//        Imgproc.line(color, new Point(0,100), new Point(900,100), new Scalar(255, 250,0), 30);
 //        return wrapPerspectiveCustom(colorPic, new Rectangle(100));
     }
 
