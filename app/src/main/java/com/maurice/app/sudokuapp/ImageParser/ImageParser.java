@@ -15,6 +15,7 @@ import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 
@@ -92,10 +93,14 @@ public class ImageParser {
         //Filtered Line segments : filter from around 130 segements to final 20
         ArrayList<LineSegment> filteredSegments = filterValidLineSegments(segments);
 
-
-
         //get points array
         Point[][] points = getKeyPoints(filteredSegments);
+
+        //form rectangles array
+        Rectangle[][] rectangles = getRectanglesFromPoints(points);
+
+        //get ImagesArray
+
 
         Mat colorPic = new Mat();
         Imgproc.cvtColor(src3, colorPic, Imgproc.COLOR_GRAY2BGR);
@@ -107,7 +112,22 @@ public class ImageParser {
         }
 
 //        Imgproc.line(color, new Point(0,100), new Point(900,100), new Scalar(255, 250,0), 30);
-        return wrapPerspective(colorPic,new Rectangle(new Point(0,0),new Point(0,600),new Point(300,0),new Point(300,600)));
+        return wrapPerspectiveCustom(colorPic, rectangles[0][1]);
+//        return wrapPerspective(colorPic, new Rectangle(new Point(0, 0), new Point(300, 0), new Point(0, 600), new Point(300, 600)));
+//        return wrapPerspectiveCustom(colorPic, new Rectangle(100));
+    }
+
+    private Rectangle[][] getRectanglesFromPoints(Point[][] points) {
+        int rows = Arrays.asList(points).size();
+        int columns = Arrays.asList(points[0]).size();
+        Rectangle[][] rectangles = new Rectangle[rows-1][columns-1];
+
+        for(int i=0;i<rows-1;i++){
+            for(int j=0;j<columns-1;j++){
+                rectangles[i][j] = new Rectangle(points[i][j],points[i][j+1],points[i+1][j],points[i+1][j+1]);
+            }
+        }
+        return rectangles;
     }
 
     private ArrayList<LineSegment> findLines(Mat src){
@@ -174,7 +194,7 @@ public class ImageParser {
 
     }
 
-    private Mat wrapPerspective(Mat src, Rectangle rect){
+    private Mat wrapPerspectiveCustom(Mat src, Rectangle rect){
         //points are in order  top-left, top-right, bottom-right, bottom-left
 
         Mat src_mat=new Mat(4,1,CvType.CV_32FC2);
@@ -188,7 +208,7 @@ public class ImageParser {
 
         Mat dst=src.clone();
 
-        Imgproc.warpPerspective(src, dst, perspectiveTransform, new Size(Math.abs(dest.lt.x-dest.rt.x),Math.abs(dest.lt.y-dest.lb.y)));
+        Imgproc.warpPerspective(src, dst, perspectiveTransform, new Size(Math.abs(dest.lt.x - dest.rt.x), Math.abs(dest.lt.y - dest.lb.y)));
 
         return dst;
 
@@ -210,7 +230,7 @@ public class ImageParser {
         Collections.sort(horizontal, new Comparator<LineSegment>() {
             @Override
             public int compare(final LineSegment object1, final LineSegment object2) {
-                return (int) (object1.point1.y-(object2.point1.y));
+                return (int) (object1.point1.y - (object2.point1.y));
             }
         });
 
@@ -218,7 +238,7 @@ public class ImageParser {
         Collections.sort(vertical, new Comparator<LineSegment>() {
             @Override
             public int compare(final LineSegment object1, final LineSegment object2) {
-                return (int) (object1.point1.x-(object2.point1.x));
+                return (int) (object1.point1.x - (object2.point1.x));
             }
         });
 
@@ -230,9 +250,24 @@ public class ImageParser {
                 twoDim[i][j] = intersect;
             }
         }
-        Log.d(TAG,"2D ARRAY : "+GenUtils.print2dArray(twoDim));
+        Log.d(TAG, "2D ARRAY : " + GenUtils.print2dArray(twoDim));
         return twoDim;
     }
+//
+    private Mat[][] getIndividualBoxes(Mat mat, Rectangle[][] rects){
+        Mat clone = mat.clone();
+        int rows = Arrays.asList(rects).size();
+        int columns = Arrays.asList(rects[0]).size();
+        Mat[][] matArr = new Mat[rows][columns];
+
+        for(int i=0;i<rows-1;i++){
+            for(int j=0;j<columns-1;j++){
+                matArr[i][j] = wrapPerspectiveCustom(clone, rects[i][j]);
+            }
+        }
+        return matArr;
+    }
+
 
 
 
