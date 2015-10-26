@@ -39,14 +39,14 @@ public class MainActivity extends AppCompatActivity{
 
 
             //Source Image Bitmap
-            Bitmap sourceBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.train_4);
+            Bitmap sourceBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.train_3);
 
             //Get rendered bitmap
             Bitmap renderedBitmap = imageparser.parseBitmap(sourceBitmap);
 
             //Show rendered bitmap
             imageView.setImageBitmap(renderedBitmap);
-            imageView2.setImageResource(R.drawable.sample);
+            imageView2.setImageResource(R.drawable.train_3);
         }else{
             Log.e("ERROR","OpenCVLoader not initialized");
         }

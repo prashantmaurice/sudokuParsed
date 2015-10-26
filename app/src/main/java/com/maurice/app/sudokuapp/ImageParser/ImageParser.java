@@ -84,24 +84,28 @@ public class ImageParser {
 
     private Mat processMat(Mat src){
 
+        double units = (float) src.width()/200;
+        Logg.d(TAG,"Image size units : "+units);
+
         //Pre process image
 //        src = new Mat(src.size(), CvType.CV_8UC1);
 
         //Grey image
-        Mat grey = src.clone();
-        Imgproc.cvtColor(src, grey, Imgproc.COLOR_RGB2GRAY);
+        Mat srcGry = src.clone();
+        Imgproc.cvtColor(src, srcGry, Imgproc.COLOR_RGB2GRAY);
 
         //Blur the image
-        Mat src2 = new Mat(grey.size(), CvType.CV_8UC1);
-        GaussianBlur(grey, src2, new Size(11, 11), 0);
+        int blurRadius = (int) (units*3);
+        Mat srcBlr = new Mat(srcGry.size(), CvType.CV_8UC1);
+        GaussianBlur(srcGry, srcBlr, new Size(blurRadius, blurRadius), 0);
 
 
-        //Create an adaptive threshold for parsing image
-        Mat src3 = new Mat(src2.size(), CvType.CV_8UC1);
-        Imgproc.adaptiveThreshold(src2, src3, 255, Imgproc.ADAPTIVE_THRESH_MEAN_C, Imgproc.THRESH_BINARY_INV, 15, 4);
+        //Create an adaptive threshold for parsing and inverting image
+        Mat src3 = new Mat(srcGry.size(), CvType.CV_8UC1);
+        Imgproc.adaptiveThreshold(srcGry, src3, 255, Imgproc.ADAPTIVE_THRESH_MEAN_C, Imgproc.THRESH_BINARY_INV, 15, 4);
         //TODO : may be do a floodfill here
 
-        //TODO : by here image should be square and perspective propererd
+        //CHECK : by here image should be square and perspective propererd
 
 
 
@@ -112,17 +116,22 @@ public class ImageParser {
         //Filtered Line segments : filter from around 130 segements to final 20
         ArrayList<LineSegment> filteredSegments = filterValidLineSegments(segments);
 
+
+
+
         //remove original lines
         Mat color = new Mat();
         Imgproc.cvtColor(src3, color, Imgproc.COLOR_GRAY2BGR);
         for(LineSegment lineSegment : filteredSegments){
 //            Imgproc.line(color, lineSegment.point1, lineSegment.point2, new Scalar(Math.random()*255, Math.random()*255,Math.random()*255), 3);
-            Imgproc.line(color, lineSegment.point1, lineSegment.point2, new Scalar(200, 0,0), 20);
-//            Imgproc.line(color, lineSegment.point1, lineSegment.point2, new Scalar(0, 0,0), (int) (src.width()*0.03));
+//            Imgproc.line(color, lineSegment.point1, lineSegment.point2, new Scalar(200, 0,0), (int)units*10);
+//            Imgproc.line(color, lineSegment.point1, lineSegment.point2, new Scalar(0,0,0), (int) (units*26));
         }
 
+        // CHECK : after this, no lines should be there in color
+
 //        if(0==0) return scaleImageToMaxSize(src, 100);
-        if(0==0) return color;
+//        if(0==0) return color;
 
         //get points array
         Point[][] points = getKeyPoints(filteredSegments);
@@ -130,8 +139,26 @@ public class ImageParser {
         //form rectangles array
         Rectangle[][] rectangles = getRectanglesFromPoints(points);
 
+        //Draw Lines so that subsequest floodflill will run smoothly
+        for(LineSegment lineSegment : filteredSegments){
+            Imgproc.line(src3, lineSegment.point1, lineSegment.point2, new Scalar(255, 0,0), 1);
+        }
+
+        //Remove original lines through flood fill
+        Size size = new Size(src3.size().width+2,src3.size().height+2);
+        Mat mask = new Mat(size, CvType.CV_8UC1);
+        Rect rect = new Rect(0, 0, src3.width(),src3.height());
+        Scalar lowDiff = new Scalar(0,0,0);
+        Scalar highDiff = new Scalar(120,120,120);
+        Logg.d(TAG,"Started Floodfliiing...");
+        Imgproc.floodFill(src3, mask, points[0][0], new Scalar(0, 200, 0), rect, lowDiff, highDiff, 0);
+        Logg.d(TAG, "Ended Floodfliiing....");
+
         //get ImagesArray
-        Mat[][] boxesCrop = getIndividualBoxes(src3,rectangles);
+        Mat[][] boxesCrop = getIndividualBoxes(src3, rectangles);
+
+        //get NumberImages From Boxes
+        Mat[][] numbersCrop = getIndividualNumbers(boxesCrop);
 
         Mat colorPic = new Mat();
         Imgproc.cvtColor(src3, colorPic, Imgproc.COLOR_GRAY2BGR);
@@ -139,10 +166,14 @@ public class ImageParser {
         //Draw Lines
         for(LineSegment lineSegment : filteredSegments){
 //            Imgproc.line(color, lineSegment.point1, lineSegment.point2, new Scalar(Math.random()*255, Math.random()*255,Math.random()*255), 3);
-            Imgproc.line(colorPic, lineSegment.point1, lineSegment.point2, new Scalar(255, 0,0), 3);
+//            Imgproc.line(colorPic, lineSegment.point1, lineSegment.point2, new Scalar(255, 0,0), (int) (units*4));
         }
 
 
+
+
+
+//        if(0==0) return numbersCrop[0][2];
 
 
 //        DigitRecogniser digitRecogniser = new DigitRecogniser(mContext);
@@ -154,6 +185,7 @@ public class ImageParser {
 //        Imgproc.line(colorPic, new Point(0,100), new Point(900,100), new Scalar(255, 250,0), 30);
 //        return wrapPerspectiveCustom(colorPic, new Rectangle(100));
     }
+
 
 
     public Mat[][] getCroppedMats(Mat src){
@@ -333,8 +365,8 @@ public class ImageParser {
 
         Rectangle dest = new Rectangle(size);
 
-        src_mat.put(0,0,rect.lt.x,rect.lt.y,rect.rt.x,rect.rt.y,rect.lb.x,rect.lb.y,rect.rb.x,rect.rb.y);
-        dst_mat.put(0,0,dest.lt.x,dest.lt.y,dest.rt.x,dest.rt.y,dest.lb.x,dest.lb.y,dest.rb.x,dest.rb.y);
+        src_mat.put(0, 0, rect.lt.x, rect.lt.y, rect.rt.x, rect.rt.y, rect.lb.x, rect.lb.y, rect.rb.x, rect.rb.y);
+        dst_mat.put(0, 0, dest.lt.x, dest.lt.y, dest.rt.x, dest.rt.y, dest.lb.x, dest.lb.y, dest.rb.x, dest.rb.y);
         Mat perspectiveTransform=Imgproc.getPerspectiveTransform(src_mat, dst_mat);
 
         Mat dst=src.clone();
@@ -397,6 +429,35 @@ public class ImageParser {
             }
         }
         return matArr;
+    }
+
+    /**
+     *  Image with border and text inside -> text with 40x40 size
+     */
+    private Mat[][] getIndividualNumbers(Mat[][] boxes){
+        if(true)return boxes;
+        int rows = boxes.length;
+        int columns = boxes[0].length;
+        Mat[][] matArr = new Mat[rows][columns];
+
+        for(int i=0;i<boxes.length-1;i++){
+            for(int j=0;j<boxes[0].length-1;j++){
+                matArr[i][j] = extractText(boxes[i][j]);
+            }
+        }
+        return matArr;
+    }
+
+    private Mat extractText(Mat src) {
+//        Size size = new Size(src.size().width+2,src.size().height+2);
+//        Mat mask = new Mat(size, CvType.CV_8UC1);
+//        Rect rect = new Rect(0, 0, src.width(),src.height());
+//        Scalar lowDiff = new Scalar(0,0,0);
+//        Scalar highDiff = new Scalar(254,254,254);
+//        Logg.d(TAG,"Started Floodfliiing");
+//        Imgproc.floodFill(src, mask, new Point(2, 2), new Scalar(0, 200, 0), rect, lowDiff, highDiff, Imgproc.FLOODFILL_FIXED_RANGE);
+//        Logg.d(TAG, "Ended Floodfliiing");
+        return src;
     }
 
 
