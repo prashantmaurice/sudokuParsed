@@ -3,6 +3,7 @@ package com.maurice.app.sudokuapp.ImageParser;
 import android.graphics.Bitmap;
 
 import com.maurice.app.sudokuapp.ImageParser.models.LineSegment;
+import com.maurice.app.sudokuapp.utils.Logg;
 
 import org.opencv.android.Utils;
 import org.opencv.core.Core;
@@ -10,6 +11,8 @@ import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.Point;
 import org.opencv.core.Scalar;
+
+import java.util.Arrays;
 
 /**
  * Created by maurice on 16/08/15.
@@ -70,5 +73,12 @@ public class GenUtils {
     }
     public static double getAngleFromradians(double radians){
         return (radians/Math.PI)*180;
+    }
+    public static void printBoard(int[][] digits) {
+        String text = "";
+        for(int i=0;i<digits.length;i++){
+            text += Arrays.toString(digits[i])+"\n";
+        }
+        Logg.d("BOARD",text);
     }
 }

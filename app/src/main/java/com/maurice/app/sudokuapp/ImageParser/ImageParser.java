@@ -99,7 +99,8 @@ public class ImageParser {
 
 
 
-
+        DigitRecogniser2 digitRecogniser2 = DigitRecogniser2.getInstance(mContext);
+        digitRecogniser2.recogniseDigits(numbersCrop);
         return numbersCrop[0][2];
 //        return extractROI(numbersCrop[0][2]);
 
