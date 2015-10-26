@@ -4,6 +4,7 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.util.Log;
 
+import com.maurice.app.sudokuapp.SudokuAI;
 import com.maurice.app.sudokuapp.utils.Logg;
 
 import org.opencv.core.Core;
@@ -157,6 +158,8 @@ public class DigitRecogniser2 {
         }
 
         GenUtils.printBoard(digits);
+        int[][] solved = SudokuAI.getSolved(digits);
+        GenUtils.printBoard(solved);
         return digits;
     }
 
