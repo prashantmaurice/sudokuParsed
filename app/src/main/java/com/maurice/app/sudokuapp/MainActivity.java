@@ -10,6 +10,7 @@ import android.view.MenuItem;
 import android.widget.ImageView;
 
 import com.maurice.app.sudokuapp.ImageParser.DigitRecogniser2;
+import com.maurice.app.sudokuapp.ImageParser.GenUtils;
 import com.maurice.app.sudokuapp.ImageParser.ImageParser;
 
 import org.opencv.android.OpenCVLoader;
@@ -45,7 +46,9 @@ public class MainActivity extends AppCompatActivity{
             Bitmap renderedBitmap = imageparser.parseBitmap(sourceBitmap);
 
             //Show rendered bitmap
-            imageView.setImageBitmap(renderedBitmap);
+//            imageView.setImageBitmap(renderedBitmap);
+//            imageView.setImageBitmap(digitRecogniser2.trainSet.trainDataArr.get(0).bitmap);
+            imageView.setImageBitmap(GenUtils.convertMatToBitmap(digitRecogniser2.finalMap.get(4)));
             imageView2.setImageResource(R.drawable.train_3);
         }else{
             Log.e("ERROR","OpenCVLoader not initialized");

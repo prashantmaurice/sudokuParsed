@@ -2,21 +2,19 @@ package com.maurice.app.sudokuapp.ImageParser;
 
 import android.content.Context;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.util.Log;
 
 import com.maurice.app.sudokuapp.ImageParser.models.Rectangle;
-import com.maurice.app.sudokuapp.R;
 import com.maurice.app.sudokuapp.utils.Logg;
 
 import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
-import org.opencv.core.Scalar;
 import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 /**
  * Created by maurice on 23/08/15.
@@ -30,37 +28,41 @@ public class DigitRecogniser2 {
     ArrayList<Mat> mapArrayNormal = new ArrayList<>();
     ArrayList<Mat> mapArrayInvert = new ArrayList<>();
 
+    public HashMap<Integer,Mat> finalMap = new HashMap<>();
+    public TrainSet trainSet;
+
     private DigitRecogniser2(Context context){
         mContext = context;
+        trainSet = new TrainSet(mContext);
 
         //setupTrainData
-//        setupTrainData();
+        setupTrainData();
 
 
 
 //        bitmapArray.add(BitmapFactory.decodeResource(context.getResources(), R.drawable.train_1));
-        bitmapArray.add(BitmapFactory.decodeResource(context.getResources(), R.drawable.one));
-        bitmapArray.add(BitmapFactory.decodeResource(context.getResources(), R.drawable.two));
-        bitmapArray.add(BitmapFactory.decodeResource(context.getResources(), R.drawable.three));
-        bitmapArray.add(BitmapFactory.decodeResource(context.getResources(), R.drawable.four));
-        bitmapArray.add(BitmapFactory.decodeResource(context.getResources(), R.drawable.five));
-        bitmapArray.add(BitmapFactory.decodeResource(context.getResources(), R.drawable.six));
-        bitmapArray.add(BitmapFactory.decodeResource(context.getResources(), R.drawable.seven));
-        bitmapArray.add(BitmapFactory.decodeResource(context.getResources(), R.drawable.eight));
-        bitmapArray.add(BitmapFactory.decodeResource(context.getResources(), R.drawable.nine));
+//        bitmapArray.add(BitmapFactory.decodeResource(context.getResources(), R.drawable.one));
+//        bitmapArray.add(BitmapFactory.decodeResource(context.getResources(), R.drawable.two));
+//        bitmapArray.add(BitmapFactory.decodeResource(context.getResources(), R.drawable.three));
+//        bitmapArray.add(BitmapFactory.decodeResource(context.getResources(), R.drawable.four));
+//        bitmapArray.add(BitmapFactory.decodeResource(context.getResources(), R.drawable.five));
+//        bitmapArray.add(BitmapFactory.decodeResource(context.getResources(), R.drawable.six));
+//        bitmapArray.add(BitmapFactory.decodeResource(context.getResources(), R.drawable.seven));
+//        bitmapArray.add(BitmapFactory.decodeResource(context.getResources(), R.drawable.eight));
+//        bitmapArray.add(BitmapFactory.decodeResource(context.getResources(), R.drawable.nine));
 
-        for(Bitmap bitmap : bitmapArray){
-
-            Mat src = GenUtils.convertBitmapToMat(bitmap);
-            Mat grey = src.clone();
-            Imgproc.cvtColor(src, grey, Imgproc.COLOR_RGB2GRAY);
-
-            Mat inverted = wrapPerspectiveCustom(grey,new Rectangle(grey.width(),grey.height()));
-            Mat normal= new Mat(inverted.rows(),inverted.cols(), inverted.type(), new Scalar(1,1,1));
-            Core.subtract(normal, inverted, normal);
-            mapArrayNormal.add(normal);
-            mapArrayInvert.add(inverted);
-        }
+//        for(Bitmap bitmap : bitmapArray){
+//
+//            Mat src = GenUtils.convertBitmapToMat(bitmap);
+//            Mat grey = src.clone();
+//            Imgproc.cvtColor(src, grey, Imgproc.COLOR_RGB2GRAY);
+//
+//            Mat inverted = wrapPerspectiveCustom(grey,new Rectangle(grey.width(),grey.height()));
+//            Mat normal= new Mat(inverted.rows(),inverted.cols(), inverted.type(), new Scalar(1,1,1));
+//            Core.subtract(normal, inverted, normal);
+//            mapArrayNormal.add(normal);
+//            mapArrayInvert.add(inverted);
+//        }
     }
 
     public static DigitRecogniser2 getInstance(Context context){
@@ -69,12 +71,30 @@ public class DigitRecogniser2 {
     }
 
     private void setupTrainData() {
-        TrainSet trainSet = new TrainSet(mContext);
         Logg.d(TAG, "Setting Up training data");
         ImageParser imageParser = ImageParser.getInstance(mContext);
         for(TrainSet.TrainDataAnswer trainer : trainSet.trainDataArr){
             Mat mat = GenUtils.convertBitmapToMat(trainer.bitmap);
-            imageParser.getCroppedMats(mat);
+            Mat[][] croppedMats = imageParser.getCroppedMats(mat);
+            HashMap<Integer, Integer> countMap = new HashMap<>();
+            for(int i=0;i<croppedMats.length-1;i++){
+                for(int j=0;j<croppedMats[0].length-1;j++){
+                    int number = trainer.data[i][j];
+                    if(finalMap.containsKey(number)){
+                        float newPercent =  (float)1/(countMap.get(number)+1);
+//                        newPercent = 0;
+                        Logg.d(TAG, "New Pervent : " + newPercent);
+                        Mat before = finalMap.get(number);
+                        Core.addWeighted(before, 1-newPercent, croppedMats[i][j],newPercent,0,before);
+                        countMap.put(number, countMap.get(number) + 1);
+                        Logg.d("DEBUGpp","i="+i+" j="+j+" num="+number);
+                    }else{
+                        countMap.put(number,1);
+                        finalMap.put(number,croppedMats[i][j].clone());
+                        Logg.d("DEBUGpp", "i="+i + " j=" + j + " num=" + number);
+                    }
+                }
+            }
         }
 
     }

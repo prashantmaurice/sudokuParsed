@@ -84,6 +84,40 @@ public class ImageParser {
 
     private Mat processMat(Mat src){
 
+
+        //get NumberImages From Boxes
+        Mat[][] numbersCrop = getCroppedMats(src);
+
+//        Mat colorPic = new Mat();
+//        Imgproc.cvtColor(src3, colorPic, Imgproc.COLOR_GRAY2BGR);
+
+        //Draw Lines
+//        for(LineSegment lineSegment : filteredSegments){
+//            Imgproc.line(color, lineSegment.point1, lineSegment.point2, new Scalar(Math.random()*255, Math.random()*255,Math.random()*255), 3);
+//            Imgproc.line(colorPic, lineSegment.point1, lineSegment.point2, new Scalar(255, 0,0), (int) (units*4));
+//        }
+
+
+
+
+        return numbersCrop[0][2];
+//        return extractROI(numbersCrop[0][2]);
+
+
+//        DigitRecogniser digitRecogniser = new DigitRecogniser(mContext);
+//        digitRecogniser.recogniseDigit(boxesCrop[0][2]);
+//        return extractROI(boxesCrop[0][2]).mul(digitRecogniser.mapArrayNormal.get(1));
+
+//        return colorPic;
+//        return wrapPerspectiveCustom(colorPic, new Rectangle(new Point(0, 0), new Point(300, 0), new Point(0, 600), new Point(300, 600)));
+//        Imgproc.line(colorPic, new Point(0,100), new Point(900,100), new Scalar(255, 250,0), 30);
+//        return wrapPerspectiveCustom(colorPic, new Rectangle(100));
+    }
+
+
+
+    public Mat[][] getCroppedMats(Mat src){
+
         double units = (float) src.width()/200;
         Logg.d(TAG,"Image size units : "+units);
 
@@ -159,74 +193,7 @@ public class ImageParser {
 
         //get NumberImages From Boxes
         Mat[][] numbersCrop = getIndividualNumbers(boxesCrop);
-
-        Mat colorPic = new Mat();
-        Imgproc.cvtColor(src3, colorPic, Imgproc.COLOR_GRAY2BGR);
-
-        //Draw Lines
-        for(LineSegment lineSegment : filteredSegments){
-//            Imgproc.line(color, lineSegment.point1, lineSegment.point2, new Scalar(Math.random()*255, Math.random()*255,Math.random()*255), 3);
-//            Imgproc.line(colorPic, lineSegment.point1, lineSegment.point2, new Scalar(255, 0,0), (int) (units*4));
-        }
-
-
-
-
-
-//        if(0==0) return numbersCrop[0][2];
-
-
-//        DigitRecogniser digitRecogniser = new DigitRecogniser(mContext);
-//        digitRecogniser.recogniseDigit(boxesCrop[0][2]);
-//        return extractROI(boxesCrop[0][2]).mul(digitRecogniser.mapArrayNormal.get(1));
-
-        return colorPic;
-//        return wrapPerspectiveCustom(colorPic, new Rectangle(new Point(0, 0), new Point(300, 0), new Point(0, 600), new Point(300, 600)));
-//        Imgproc.line(colorPic, new Point(0,100), new Point(900,100), new Scalar(255, 250,0), 30);
-//        return wrapPerspectiveCustom(colorPic, new Rectangle(100));
-    }
-
-
-
-    public Mat[][] getCroppedMats(Mat src){
-        //Pre process image
-//        src = new Mat(src.size(), CvType.CV_8UC1);
-
-        //Grey image
-        Mat grey = src.clone();
-        Imgproc.cvtColor(src, grey, Imgproc.COLOR_RGB2GRAY);
-
-        //Blur the image
-        Mat src2 = new Mat(grey.size(), CvType.CV_8UC1);
-        GaussianBlur(grey, src2, new Size(11, 11), 0);
-
-
-        //Create an adaptive threshold for parsing image
-        Mat src3 = new Mat(src2.size(), CvType.CV_8UC1);
-        Imgproc.adaptiveThreshold(src2, src3, 255, Imgproc.ADAPTIVE_THRESH_MEAN_C, Imgproc.THRESH_BINARY_INV, 15, 4);
-        //TODO : may be do a floodfill here
-
-        //find lines in the image
-        ArrayList<LineSegment> segments = findLines(src3);
-
-        //remove original lines
-        for(LineSegment lineSegment : segments){
-//            Imgproc.line(color, lineSegment.point1, lineSegment.point2, new Scalar(Math.random()*255, Math.random()*255,Math.random()*255), 3);
-            Imgproc.line(src3, lineSegment.point1, lineSegment.point2, new Scalar(0, 0,0), 3);
-        }
-
-        //Filtered Line segments : filter from around 130 segements to final 20
-        ArrayList<LineSegment> filteredSegments = filterValidLineSegments(segments);
-
-        //get points array
-        Point[][] points = getKeyPoints(filteredSegments);
-
-        //form rectangles array
-        Rectangle[][] rectangles = getRectanglesFromPoints(points);
-
-        //get ImagesArray
-        Mat[][] boxesCrop = getIndividualBoxes(src3,rectangles);
-        return boxesCrop;
+        return numbersCrop;
     }
 
     private Mat extractROI(Mat mat){
@@ -274,7 +241,7 @@ public class ImageParser {
         Log.d(TAG, "Ratio :  "+ratio);
 
         //Find lines in the image
-        int threshold = (int) (maxWidth*0.4);//The minimum number of intersections to “detect” a line
+        int threshold = (int) (maxWidth*0.3);//The minimum number of intersections to “detect” a line
         int minLinelength = (int) (maxWidth*0.75);//The minimum number of points that can form a line. Lines with less than this number of points are disregarded.
         int maxlineGap = (int) (maxWidth*0.05);//The maximum gap between two points to be considered in the same line.
         Mat lines = new Mat();
@@ -435,7 +402,6 @@ public class ImageParser {
      *  Image with border and text inside -> text with 40x40 size
      */
     private Mat[][] getIndividualNumbers(Mat[][] boxes){
-        if(true)return boxes;
         int rows = boxes.length;
         int columns = boxes[0].length;
         Mat[][] matArr = new Mat[rows][columns];
@@ -457,7 +423,7 @@ public class ImageParser {
 //        Logg.d(TAG,"Started Floodfliiing");
 //        Imgproc.floodFill(src, mask, new Point(2, 2), new Scalar(0, 200, 0), rect, lowDiff, highDiff, Imgproc.FLOODFILL_FIXED_RANGE);
 //        Logg.d(TAG, "Ended Floodfliiing");
-        return src;
+        return extractROI(src);
     }
 
 
