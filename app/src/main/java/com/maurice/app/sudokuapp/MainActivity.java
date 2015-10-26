@@ -9,6 +9,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ImageView;
 
+import com.maurice.app.sudokuapp.ImageParser.DigitRecogniser2;
 import com.maurice.app.sudokuapp.ImageParser.ImageParser;
 
 import org.opencv.android.OpenCVLoader;
@@ -24,6 +25,7 @@ public class MainActivity extends AppCompatActivity{
 
     ImageView imageView,imageView2;
     ImageParser imageparser;
+    DigitRecogniser2 digitRecogniser2;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -32,11 +34,12 @@ public class MainActivity extends AppCompatActivity{
 
             imageView = (ImageView) findViewById(R.id.imageView);
             imageView2 = (ImageView) findViewById(R.id.imageView2);
-            imageparser = new ImageParser(this);
+            imageparser = ImageParser.getInstance(this);
+            digitRecogniser2 = DigitRecogniser2.getInstance(this);
 
 
             //Source Image Bitmap
-            Bitmap sourceBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.sample);
+            Bitmap sourceBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.train_4);
 
             //Get rendered bitmap
             Bitmap renderedBitmap = imageparser.parseBitmap(sourceBitmap);

@@ -5,6 +5,7 @@ import android.graphics.Bitmap;
 import com.maurice.app.sudokuapp.ImageParser.models.LineSegment;
 
 import org.opencv.android.Utils;
+import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.Point;
@@ -61,5 +62,13 @@ public class GenUtils {
         }
         return printStr;
 //        Log.d("Array",printStr);
+    }
+    public static Mat invertMat(Mat src){
+        Mat dst= new Mat(src.rows(),src.cols(), src.type(), new Scalar(1,1,1));
+        Core.subtract(dst, src, dst);
+        return dst;
+    }
+    public static double getAngleFromradians(double radians){
+        return (radians/Math.PI)*180;
     }
 }

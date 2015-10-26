@@ -6,6 +6,7 @@ import android.util.Log;
 
 import com.maurice.app.sudokuapp.ImageParser.models.LineSegment;
 import com.maurice.app.sudokuapp.ImageParser.models.Rectangle;
+import com.maurice.app.sudokuapp.utils.Logg;
 
 import org.opencv.core.Core;
 import org.opencv.core.CvType;
@@ -39,6 +40,7 @@ import static org.opencv.imgproc.Imgproc.GaussianBlur;
 
 public class ImageParser {
     Context mContext;
+    static ImageParser instance;
     static String TAG = "IMAGEPARSER";
 
     //Image Processing Params
@@ -50,10 +52,17 @@ public class ImageParser {
     static int IMAGE_WIDTH = 100;
     static int IMAGE_HEIGHT = 100;
 
+    DigitRecogniser2 digitRecogniser2;
 
 
-    public ImageParser(Context context){
+
+    private ImageParser(Context context){
         mContext = context;
+    }
+
+    public static ImageParser getInstance(Context context){
+        if(instance==null) instance = new ImageParser(context);
+        return instance;
     }
 
 
@@ -64,13 +73,13 @@ public class ImageParser {
         Mat mat = GenUtils.convertBitmapToMat(bitmap);
 
         //Apply Transformations
-        Mat result = processMat(mat);
+        mat = processMat(mat);
 
         //TODO :add sudokuAI module
 //        SudokuAI ai = new SudokuAI();
 
         //Convert back Mat to bitmap
-        return GenUtils.convertMatToBitmap(result);
+        return GenUtils.convertMatToBitmap(mat);
     }
 
     private Mat processMat(Mat src){
@@ -92,20 +101,28 @@ public class ImageParser {
         Imgproc.adaptiveThreshold(src2, src3, 255, Imgproc.ADAPTIVE_THRESH_MEAN_C, Imgproc.THRESH_BINARY_INV, 15, 4);
         //TODO : may be do a floodfill here
 
+        //TODO : by here image should be square and perspective propererd
 
 
 
         //find lines in the image
         ArrayList<LineSegment> segments = findLines(src3);
 
-        //remove original lines
-        for(LineSegment lineSegment : segments){
-//            Imgproc.line(color, lineSegment.point1, lineSegment.point2, new Scalar(Math.random()*255, Math.random()*255,Math.random()*255), 3);
-            Imgproc.line(src3, lineSegment.point1, lineSegment.point2, new Scalar(0, 0,0), 3);
-        }
 
         //Filtered Line segments : filter from around 130 segements to final 20
         ArrayList<LineSegment> filteredSegments = filterValidLineSegments(segments);
+
+        //remove original lines
+        Mat color = new Mat();
+        Imgproc.cvtColor(src3, color, Imgproc.COLOR_GRAY2BGR);
+        for(LineSegment lineSegment : filteredSegments){
+//            Imgproc.line(color, lineSegment.point1, lineSegment.point2, new Scalar(Math.random()*255, Math.random()*255,Math.random()*255), 3);
+            Imgproc.line(color, lineSegment.point1, lineSegment.point2, new Scalar(200, 0,0), 20);
+//            Imgproc.line(color, lineSegment.point1, lineSegment.point2, new Scalar(0, 0,0), (int) (src.width()*0.03));
+        }
+
+//        if(0==0) return scaleImageToMaxSize(src, 100);
+        if(0==0) return color;
 
         //get points array
         Point[][] points = getKeyPoints(filteredSegments);
@@ -128,13 +145,56 @@ public class ImageParser {
 
 
 
-        DigitRecogniser digitRecogniser = new DigitRecogniser(mContext);
-//        return digitRecogniser.mapArray.get(0);
-        digitRecogniser.recogniseDigit(boxesCrop[0][1]);
-        return extractROI(boxesCrop[0][1]).mul(digitRecogniser.mapArray.get(0));
-//        return wrapPerspective(colorPic, new Rectangle(new Point(0, 0), new Point(300, 0), new Point(0, 600), new Point(300, 600)));
-//        Imgproc.line(color, new Point(0,100), new Point(900,100), new Scalar(255, 250,0), 30);
+//        DigitRecogniser digitRecogniser = new DigitRecogniser(mContext);
+//        digitRecogniser.recogniseDigit(boxesCrop[0][2]);
+//        return extractROI(boxesCrop[0][2]).mul(digitRecogniser.mapArrayNormal.get(1));
+
+        return colorPic;
+//        return wrapPerspectiveCustom(colorPic, new Rectangle(new Point(0, 0), new Point(300, 0), new Point(0, 600), new Point(300, 600)));
+//        Imgproc.line(colorPic, new Point(0,100), new Point(900,100), new Scalar(255, 250,0), 30);
 //        return wrapPerspectiveCustom(colorPic, new Rectangle(100));
+    }
+
+
+    public Mat[][] getCroppedMats(Mat src){
+        //Pre process image
+//        src = new Mat(src.size(), CvType.CV_8UC1);
+
+        //Grey image
+        Mat grey = src.clone();
+        Imgproc.cvtColor(src, grey, Imgproc.COLOR_RGB2GRAY);
+
+        //Blur the image
+        Mat src2 = new Mat(grey.size(), CvType.CV_8UC1);
+        GaussianBlur(grey, src2, new Size(11, 11), 0);
+
+
+        //Create an adaptive threshold for parsing image
+        Mat src3 = new Mat(src2.size(), CvType.CV_8UC1);
+        Imgproc.adaptiveThreshold(src2, src3, 255, Imgproc.ADAPTIVE_THRESH_MEAN_C, Imgproc.THRESH_BINARY_INV, 15, 4);
+        //TODO : may be do a floodfill here
+
+        //find lines in the image
+        ArrayList<LineSegment> segments = findLines(src3);
+
+        //remove original lines
+        for(LineSegment lineSegment : segments){
+//            Imgproc.line(color, lineSegment.point1, lineSegment.point2, new Scalar(Math.random()*255, Math.random()*255,Math.random()*255), 3);
+            Imgproc.line(src3, lineSegment.point1, lineSegment.point2, new Scalar(0, 0,0), 3);
+        }
+
+        //Filtered Line segments : filter from around 130 segements to final 20
+        ArrayList<LineSegment> filteredSegments = filterValidLineSegments(segments);
+
+        //get points array
+        Point[][] points = getKeyPoints(filteredSegments);
+
+        //form rectangles array
+        Rectangle[][] rectangles = getRectanglesFromPoints(points);
+
+        //get ImagesArray
+        Mat[][] boxesCrop = getIndividualBoxes(src3,rectangles);
+        return boxesCrop;
     }
 
     private Mat extractROI(Mat mat){
@@ -175,12 +235,20 @@ public class ImageParser {
     }
 
     private ArrayList<LineSegment> findLines(Mat src){
+        int maxWidth = 100;
+        float ratio = ((float)src.width())/maxWidth;
+        Mat srcScaled = scaleImageToMaxSize(src,maxWidth);
+        long startTime = System.currentTimeMillis();
+        Log.d(TAG, "Ratio :  "+ratio);
+
         //Find lines in the image
-        int threshold = 100;
-        int minLinelength = 900;
-        int maxlineGap = 120;
+        int threshold = (int) (maxWidth*0.4);//The minimum number of intersections to “detect” a line
+        int minLinelength = (int) (maxWidth*0.75);//The minimum number of points that can form a line. Lines with less than this number of points are disregarded.
+        int maxlineGap = (int) (maxWidth*0.05);//The maximum gap between two points to be considered in the same line.
         Mat lines = new Mat();
-        Imgproc.HoughLinesP(src, lines, 1, Math.PI/180, threshold, minLinelength, maxlineGap);
+        Log.d(TAG, "REACH1 "+(System.currentTimeMillis()-startTime)+" ms");
+        Imgproc.HoughLinesP(srcScaled, lines, 1, Math.PI / 180, threshold, minLinelength, maxlineGap);
+        Log.d(TAG, "REACH2 " + (System.currentTimeMillis() - startTime) + " ms");
 
         //draw color lines on the image
         ArrayList<LineSegment> segments = new ArrayList<>();
@@ -191,15 +259,16 @@ public class ImageParser {
                     y1 = vec[1],
                     x2 = vec[2],
                     y2 = vec[3];
-            Point start = new Point(x1, y1);
-            Point end = new Point(x2, y2);
+            Point start = new Point(x1*ratio, y1*ratio);
+            Point end = new Point(x2*ratio, y2*ratio);
             segments.add(new LineSegment(start, end));
         }
-        Log.d(TAG, segments.size()+" lines detected in image");
+        Log.d(TAG, segments.size()+" lines detected in image in "+(System.currentTimeMillis()-startTime)+" ms");
         return segments;
     }
 
     private ArrayList<LineSegment> filterValidLineSegments(ArrayList<LineSegment> segments){
+
         ArrayList<LineSegment> filtered = segments;
         filtered = filterSimilarLines(filtered);
         return filtered;
@@ -212,7 +281,7 @@ public class ImageParser {
     private ArrayList<LineSegment> filterSimilarLines(ArrayList<LineSegment> segments ){
         //params
         double minPointDistance = 60;
-        double minangleDistance = 20;
+        double minangleDistance = 20*(Math.PI/180);
 
         ArrayList<LineSegment> filtered = new ArrayList<>();
         ArrayList<Integer> rejectedIndices = new ArrayList<>();
@@ -228,6 +297,17 @@ public class ImageParser {
             }
         }
 
+        //remove segments that are not horizontal or vertical
+        for(int i=0;i<segments.size();i++){
+            double angle = Math.abs(GenUtils.getAngleFromradians(segments.get(i).getAngle()));
+            Logg.d(TAG, "Angle : " + angle);
+            if(rejectedIndices.contains(i)) continue;
+            if(angle<20) continue;
+            if(angle>70&&angle<110) continue;
+            if(angle>160&&angle<200) continue;
+            rejectedIndices.add(i);
+        }
+
         //Finally add in filtered array
         for(int i=0;i<segments.size();i++){//find highest
             if(!rejectedIndices.contains(i)) filtered.add(segments.get(i));
@@ -238,13 +318,20 @@ public class ImageParser {
 
     }
 
+    /**
+     *  use this to crop an image to required size
+     *
+     */
     private Mat wrapPerspectiveCustom(Mat src, Rectangle rect){
+        return wrapPerspectiveCustom(src,rect,200);
+    }
+    private Mat wrapPerspectiveCustom(Mat src, Rectangle rect, int size){
         //points are in order  top-left, top-right, bottom-right, bottom-left
 
         Mat src_mat=new Mat(4,1,CvType.CV_32FC2);
         Mat dst_mat=new Mat(4,1,CvType.CV_32FC2);
 
-        Rectangle dest = new Rectangle(200);
+        Rectangle dest = new Rectangle(size);
 
         src_mat.put(0,0,rect.lt.x,rect.lt.y,rect.rt.x,rect.rt.y,rect.lb.x,rect.lb.y,rect.rb.x,rect.rb.y);
         dst_mat.put(0,0,dest.lt.x,dest.lt.y,dest.rt.x,dest.rt.y,dest.lb.x,dest.lb.y,dest.rb.x,dest.rb.y);
@@ -312,6 +399,10 @@ public class ImageParser {
         return matArr;
     }
 
+
+    private Mat scaleImageToMaxSize(Mat src, int size){
+        return wrapPerspectiveCustom(src, new Rectangle(new Point(0, 0), new Point(src.height(), 0), new Point(0, src.width()), new Point(src.height(), src.width())),size);
+    }
 
 
 

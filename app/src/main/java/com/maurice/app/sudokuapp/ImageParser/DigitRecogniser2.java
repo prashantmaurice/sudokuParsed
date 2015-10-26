@@ -7,6 +7,7 @@ import android.util.Log;
 
 import com.maurice.app.sudokuapp.ImageParser.models.Rectangle;
 import com.maurice.app.sudokuapp.R;
+import com.maurice.app.sudokuapp.utils.Logg;
 
 import org.opencv.core.Core;
 import org.opencv.core.CvType;
@@ -20,15 +21,24 @@ import java.util.ArrayList;
 /**
  * Created by maurice on 23/08/15.
  */
-public class DigitRecogniser {
-    String TAG = "RECOGNISER" ;
+public class DigitRecogniser2 {
+    String TAG = "DIGITRECOGNISER2" ;
+    static DigitRecogniser2 instance;
 
+    Context mContext;
     ArrayList<Bitmap> bitmapArray = new ArrayList<>();
     ArrayList<Mat> mapArrayNormal = new ArrayList<>();
     ArrayList<Mat> mapArrayInvert = new ArrayList<>();
 
-    public DigitRecogniser(Context context){
-        bitmapArray.add(BitmapFactory.decodeResource(context.getResources(), R.drawable.zero));
+    private DigitRecogniser2(Context context){
+        mContext = context;
+
+        //setupTrainData
+//        setupTrainData();
+
+
+
+//        bitmapArray.add(BitmapFactory.decodeResource(context.getResources(), R.drawable.train_1));
         bitmapArray.add(BitmapFactory.decodeResource(context.getResources(), R.drawable.one));
         bitmapArray.add(BitmapFactory.decodeResource(context.getResources(), R.drawable.two));
         bitmapArray.add(BitmapFactory.decodeResource(context.getResources(), R.drawable.three));
@@ -52,6 +62,23 @@ public class DigitRecogniser {
             mapArrayInvert.add(inverted);
         }
     }
+
+    public static DigitRecogniser2 getInstance(Context context){
+        if(instance==null) instance = new DigitRecogniser2(context);
+        return instance;
+    }
+
+    private void setupTrainData() {
+        TrainSet trainSet = new TrainSet(mContext);
+        Logg.d(TAG, "Setting Up training data");
+        ImageParser imageParser = ImageParser.getInstance(mContext);
+        for(TrainSet.TrainDataAnswer trainer : trainSet.trainDataArr){
+            Mat mat = GenUtils.convertBitmapToMat(trainer.bitmap);
+            imageParser.getCroppedMats(mat);
+        }
+
+    }
+
     private Mat wrapPerspectiveCustom(Mat src, Rectangle rect){
         //points are in order  top-left, top-right, bottom-right, bottom-left
 
