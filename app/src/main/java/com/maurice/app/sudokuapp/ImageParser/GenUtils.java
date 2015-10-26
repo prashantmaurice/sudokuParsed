@@ -79,6 +79,6 @@ public class GenUtils {
         for(int i=0;i<digits.length;i++){
             text += Arrays.toString(digits[i])+"\n";
         }
-        Logg.d("BOARD",text);
+        Logg.d("BOARD","=\n"+text);
     }
 }

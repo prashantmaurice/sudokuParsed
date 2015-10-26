@@ -74,13 +74,11 @@ public class DigitRecogniser2 {
             Mat mat = GenUtils.convertBitmapToMat(trainer.bitmap);
             Mat[][] croppedMats = imageParser.getCroppedMats(mat);
             HashMap<Integer, Integer> countMap = new HashMap<>();
-            for(int i=0;i<croppedMats.length-1;i++){
-                for(int j=0;j<croppedMats[0].length-1;j++){
+            for(int i=0;i<croppedMats.length;i++){
+                for(int j=0;j<croppedMats[0].length;j++){
                     int number = trainer.data[i][j];
                     if(finalMap.containsKey(number)){
                         float newPercent =  (float)1/(countMap.get(number)+1);
-//                        newPercent = 0;
-                        Logg.d(TAG, "New Pervent : " + newPercent);
                         Mat before = finalMap.get(number);
                         Core.addWeighted(before, 1-newPercent, croppedMats[i][j],newPercent,0,before);
                         countMap.put(number, countMap.get(number) + 1);
@@ -113,7 +111,7 @@ public class DigitRecogniser2 {
             Mat matLearned = finalMap.get(i);
             Log.d(TAG, "REACH0 " + (System.currentTimeMillis() - startTime) + " ms");
             Core.multiply(matLearned, mat, positive);
-            Core.subtract(matLearned, mat, negative);
+            Core.subtract(mat,matLearned, negative);
             Log.d(TAG, "REACH1 " + (System.currentTimeMillis() - startTime) + " ms");
             int sumPos = 0;
             for (int x = 0; x <= positive.rows(); x++) {
@@ -138,28 +136,28 @@ public class DigitRecogniser2 {
             Log.d(TAG, "REACH3 " + (System.currentTimeMillis() - startTime) + " ms");
             Logg.d("MATCH POS", "" + i + " : " + sumPos + " = " + sumNeg);
             Logg.d("MATCH NEG", "" + i + " : " + (sumPos - sumNeg));
-            if (highestMatch < (sumPos - sumNeg)) {
-                highestMatch = (sumPos - sumNeg);
+            if (highestMatch < (sumPos - 2*sumNeg)) {
+                highestMatch = (sumPos - 2*sumNeg);
                 probableDigit = i;
             }
             Log.d(TAG, "REACH4 " + (System.currentTimeMillis() - startTime) + " ms");
         }
+        Log.d(TAG, "RECOGNISED " +probableDigit+",");
         return probableDigit;
 
     }
 
 
-    public void recogniseDigits(Mat[][] numbersCrop) {
+    public int[][] recogniseDigits(Mat[][] numbersCrop) {
         int[][] digits = new int[9][9];
-        for(int i=0;i<numbersCrop.length-8;i++){
-            for(int j=0;j<numbersCrop[0].length-8;j++){
+        for(int i=0;i<numbersCrop.length;i++){
+            for(int j=0;j<numbersCrop[0].length;j++){
                 digits[i][j] = recogniseDigit(numbersCrop[i][j]);
             }
         }
 
         GenUtils.printBoard(digits);
-
-
+        return digits;
     }
 
 

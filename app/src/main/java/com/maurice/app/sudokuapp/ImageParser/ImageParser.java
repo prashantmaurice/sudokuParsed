@@ -46,6 +46,7 @@ public class ImageParser {
     //Image Processing Params
     double lineDetect_threshold1 = 50;
     double lineDetect_threshold2 = 200;
+    int digit_learn_size = 50;
 
     //board Params
     static final int BOARD_SIZE = 9;
@@ -88,6 +89,7 @@ public class ImageParser {
         //get NumberImages From Boxes
         Mat[][] numbersCrop = getCroppedMats(src);
 
+//        if(true)return getdebug(src);
 //        Mat colorPic = new Mat();
 //        Imgproc.cvtColor(src3, colorPic, Imgproc.COLOR_GRAY2BGR);
 
@@ -101,7 +103,8 @@ public class ImageParser {
 
         DigitRecogniser2 digitRecogniser2 = DigitRecogniser2.getInstance(mContext);
         digitRecogniser2.recogniseDigits(numbersCrop);
-        return numbersCrop[0][2];
+//        digitRecogniser2.recogniseDigit(numbersCrop[0][2]);
+        return numbersCrop[0][0];
 //        return extractROI(numbersCrop[0][2]);
 
 
@@ -115,6 +118,84 @@ public class ImageParser {
 //        return wrapPerspectiveCustom(colorPic, new Rectangle(100));
     }
 
+
+    public Mat getdebug(Mat src){
+        double units = (float) src.width()/200;
+        Logg.d(TAG,"Image size units : "+units);
+
+        //Pre process image
+//        src = new Mat(src.size(), CvType.CV_8UC1);
+
+        //Grey image
+        Mat srcGry = src.clone();
+        Imgproc.cvtColor(src, srcGry, Imgproc.COLOR_RGB2GRAY);
+
+        //Blur the image
+        int blurRadius = (int) (units*3);
+        Mat srcBlr = new Mat(srcGry.size(), CvType.CV_8UC1);
+        GaussianBlur(srcGry, srcBlr, new Size(blurRadius, blurRadius), 0);
+
+
+        //Create an adaptive threshold for parsing and inverting image
+        Mat src3 = new Mat(srcGry.size(), CvType.CV_8UC1);
+        Imgproc.adaptiveThreshold(srcGry, src3, 255, Imgproc.ADAPTIVE_THRESH_MEAN_C, Imgproc.THRESH_BINARY_INV, 15, 4);
+        //TODO : may be do a floodfill here
+
+        //CHECK : by here image should be square and perspective propererd
+
+
+
+        //find lines in the image
+        ArrayList<LineSegment> segments = findLines(src3);
+
+
+        //Filtered Line segments : filter from around 130 segements to final 20
+        ArrayList<LineSegment> filteredSegments = filterValidLineSegments(segments);
+
+
+
+
+        //remove original lines
+        Mat color = new Mat();
+        Imgproc.cvtColor(src3, color, Imgproc.COLOR_GRAY2BGR);
+        for(LineSegment lineSegment : filteredSegments){
+//            Imgproc.line(color, lineSegment.point1, lineSegment.point2, new Scalar(Math.random()*255, Math.random()*255,Math.random()*255), 3);
+//            Imgproc.line(color, lineSegment.point1, lineSegment.point2, new Scalar(200, 0,0), (int)units*10);
+//            Imgproc.line(color, lineSegment.point1, lineSegment.point2, new Scalar(200,0,0), 1);
+        }
+
+        // CHECK : after this, no lines should be there in color
+
+//        if(0==0) return scaleImageToMaxSize(src, 100);
+//        if(0==0) return color;
+
+        //get points array
+        Point[][] points = getKeyPoints(filteredSegments);
+
+        //form rectangles array
+        Rectangle[][] rectangles = getRectanglesFromPoints(points);
+
+        //Draw Lines so that subsequest floodflill will run smoothly
+        for(LineSegment lineSegment : filteredSegments){
+            Imgproc.line(src3, lineSegment.point1, lineSegment.point2, new Scalar(255, 255,1), 2);
+        }
+
+        Imgproc.line(src3, new Point(0,0), new Point(200,200), new Scalar(255, 255,1), 10);
+
+        return src3;
+
+        //Remove original lines through flood fill
+//        Size size = new Size(src3.size().width+2,src3.size().height+2);
+//        Mat mask = new Mat(size, CvType.CV_8UC1);
+//        Rect rect = new Rect(0, 0, src3.width(),src3.height());
+//        Scalar lowDiff = new Scalar(0,0,0);
+//        Scalar highDiff = new Scalar(120,120,120);
+//        Logg.d(TAG, "Started Floodfliiing...");
+//        Imgproc.floodFill(src3, mask, points[0][0], new Scalar(0, 200, 0), rect, lowDiff, highDiff, 0);
+//        Logg.d(TAG, "Ended Floodfliiing....");
+//
+//        return src3;
+    }
 
 
     public Mat[][] getCroppedMats(Mat src){
@@ -176,7 +257,7 @@ public class ImageParser {
 
         //Draw Lines so that subsequest floodflill will run smoothly
         for(LineSegment lineSegment : filteredSegments){
-            Imgproc.line(src3, lineSegment.point1, lineSegment.point2, new Scalar(255, 0,0), 1);
+            Imgproc.line(src3, lineSegment.point1, lineSegment.point2, new Scalar(255, 0,0), 2);
         }
 
         //Remove original lines through flood fill
@@ -208,6 +289,7 @@ public class ImageParser {
         if (points2f.rows() > 0) {
             rect = Imgproc.minAreaRect(points2f);
         }
+        if(rect==null) return wrapPerspectiveCustom(mat, new Rectangle(1),digit_learn_size);
 
 
         Rect roi = new Rect();
@@ -217,7 +299,7 @@ public class ImageParser {
         roi.height = (int) rect.size.height;
 
         // Crop the original image to the defined ROI
-        return wrapPerspectiveCustom(mat, new Rectangle(new Point(roi.x, roi.y), new Point(roi.x+roi.width, roi.y), new Point(roi.x, roi.y+roi.height), new Point(roi.x+roi.width, roi.y+roi.height)));
+        return wrapPerspectiveCustom(mat, new Rectangle(new Point(roi.x, roi.y), new Point(roi.x+roi.width, roi.y), new Point(roi.x, roi.y+roi.height), new Point(roi.x+roi.width, roi.y+roi.height)),digit_learn_size);
     }
 
 
@@ -391,9 +473,9 @@ public class ImageParser {
         int columns = Arrays.asList(rects[0]).size();
         Mat[][] matArr = new Mat[rows][columns];
 
-        for(int i=0;i<rows-1;i++){
-            for(int j=0;j<columns-1;j++){
-                matArr[i][j] = wrapPerspectiveCustom(clone, rects[i][j]);
+        for(int i=0;i<rows;i++){
+            for(int j=0;j<columns;j++){
+                matArr[i][j] = wrapPerspectiveCustom(clone, rects[i][j],digit_learn_size);
             }
         }
         return matArr;
@@ -407,8 +489,8 @@ public class ImageParser {
         int columns = boxes[0].length;
         Mat[][] matArr = new Mat[rows][columns];
 
-        for(int i=0;i<boxes.length-1;i++){
-            for(int j=0;j<boxes[0].length-1;j++){
+        for(int i=0;i<boxes.length;i++){
+            for(int j=0;j<boxes[0].length;j++){
                 matArr[i][j] = extractText(boxes[i][j]);
             }
         }

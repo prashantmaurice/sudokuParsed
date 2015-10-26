@@ -10,6 +10,7 @@ import android.view.MenuItem;
 import android.widget.ImageView;
 
 import com.maurice.app.sudokuapp.ImageParser.DigitRecogniser2;
+import com.maurice.app.sudokuapp.ImageParser.GenUtils;
 import com.maurice.app.sudokuapp.ImageParser.ImageParser;
 
 import org.opencv.android.OpenCVLoader;
@@ -23,7 +24,7 @@ public class MainActivity extends AppCompatActivity{
         }
     }
 
-    ImageView imageView,imageView2;
+    ImageView imageView,imageView2,imageView3,imageView4;
     ImageParser imageparser;
     DigitRecogniser2 digitRecogniser2;
     @Override
@@ -34,12 +35,14 @@ public class MainActivity extends AppCompatActivity{
 
             imageView = (ImageView) findViewById(R.id.imageView);
             imageView2 = (ImageView) findViewById(R.id.imageView2);
+            imageView3 = (ImageView) findViewById(R.id.imageView3);
+            imageView4 = (ImageView) findViewById(R.id.imageView4);
             imageparser = ImageParser.getInstance(this);
             digitRecogniser2 = DigitRecogniser2.getInstance(this);
 
 
             //Source Image Bitmap
-            Bitmap sourceBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.train_3);
+            Bitmap sourceBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.sample2);
 
             //Get rendered bitmap
             Bitmap renderedBitmap = imageparser.parseBitmap(sourceBitmap);
@@ -47,8 +50,8 @@ public class MainActivity extends AppCompatActivity{
             //Show rendered bitmap
             imageView.setImageBitmap(renderedBitmap);
 //            imageView.setImageBitmap(digitRecogniser2.trainSet.trainDataArr.get(0).bitmap);
-//            imageView.setImageBitmap(GenUtils.convertMatToBitmap(digitRecogniser2.finalMap.get(4)));
-            imageView2.setImageResource(R.drawable.train_3);
+            imageView2.setImageBitmap(GenUtils.convertMatToBitmap(digitRecogniser2.finalMap.get(5)));
+            imageView3.setImageResource(R.drawable.train_3);
         }else{
             Log.e("ERROR","OpenCVLoader not initialized");
         }
