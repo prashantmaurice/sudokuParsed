@@ -70,6 +70,10 @@ public class MainActivity extends AppCompatActivity{
         Bitmap bitmap = GenUtils.convertMatToBitmap(mat);
         if(imageView2!=null) imageView2.setImageBitmap(bitmap);
     }
+    public static void setMainImage(Mat mat){
+        Bitmap bitmap = GenUtils.convertMatToBitmap(mat);
+        if(imageView!=null) imageView.setImageBitmap(bitmap);
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {

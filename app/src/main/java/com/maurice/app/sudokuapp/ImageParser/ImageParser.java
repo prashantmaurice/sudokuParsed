@@ -6,6 +6,7 @@ import android.util.Log;
 
 import com.maurice.app.sudokuapp.ImageParser.models.LineSegment;
 import com.maurice.app.sudokuapp.ImageParser.models.Rectangle;
+import com.maurice.app.sudokuapp.SudokuAI;
 import com.maurice.app.sudokuapp.utils.Logg;
 
 import org.opencv.core.Core;
@@ -54,6 +55,7 @@ public class ImageParser {
     static int IMAGE_HEIGHT = 100;
 
     DigitRecogniser2 digitRecogniser2;
+    Rectangle[][] rectangles;
 
 
 
@@ -102,9 +104,30 @@ public class ImageParser {
 
 
         DigitRecogniser2 digitRecogniser2 = DigitRecogniser2.getInstance(mContext);
-        digitRecogniser2.recogniseDigits(numbersCrop);
-//        digitRecogniser2.recogniseDigit(numbersCrop[0][2]);
-        return numbersCrop[0][6];
+        int[][] digits = digitRecogniser2.recogniseDigits(numbersCrop);
+
+        //Get solved Solution
+        int[][] solved = SudokuAI.getSolved(digits);
+        GenUtils.printBoard(solved);
+
+
+        for(int i=0;i<9;i++){
+            for(int j=0;j<9;j++) {
+                if(digits[i][j]==0){
+                    int font = Core.FONT_HERSHEY_SIMPLEX;
+                    Rectangle rect = rectangles[i][j];
+                    Point origin = new Point(rect.lb.x+4, rect.lb.y-4);
+                    Imgproc.putText(src, ""+solved[i][j], origin, font, 1, new Scalar(100, 10, 150,100),4);
+                }
+            }
+        }
+
+        //Set solved digits on top of image
+        Mat temp = digitRecogniser2.mapDigitPics.get(2);
+        temp.copyTo(src.rowRange(0, temp.rows()).colRange(0, temp.cols()));
+
+
+        return src;
 //        return extractROI(numbersCrop[0][2]);
 
 
@@ -173,7 +196,7 @@ public class ImageParser {
         Point[][] points = getKeyPoints(filteredSegments);
 
         //form rectangles array
-        Rectangle[][] rectangles = getRectanglesFromPoints(points);
+        rectangles = getRectanglesFromPoints(points);//stored for future use
 
         //Draw Lines so that subsequest floodflill will run smoothly
         for(LineSegment lineSegment : filteredSegments){
@@ -254,7 +277,7 @@ public class ImageParser {
         Point[][] points = getKeyPoints(filteredSegments);
 
         //form rectangles array
-        Rectangle[][] rectangles = getRectanglesFromPoints(points);
+        rectangles = getRectanglesFromPoints(points);
 
         //Draw Lines so that subsequest floodflill will run smoothly
         for(LineSegment lineSegment : filteredSegments){

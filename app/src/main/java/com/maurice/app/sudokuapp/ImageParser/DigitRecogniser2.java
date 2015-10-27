@@ -4,7 +4,6 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.util.Log;
 
-import com.maurice.app.sudokuapp.MainActivity;
 import com.maurice.app.sudokuapp.SudokuAI;
 import com.maurice.app.sudokuapp.utils.Logg;
 
@@ -29,6 +28,7 @@ public class DigitRecogniser2 {
     ArrayList<Mat> mapArrayNormal = new ArrayList<>();
     ArrayList<Mat> mapArrayInvert = new ArrayList<>();
 
+    public HashMap<Integer, Mat> mapDigitPics = new HashMap<>();
     public HashMap<Integer,Mat> finalMap = new HashMap<>();
     public TrainSet trainSet;
 
@@ -81,6 +81,7 @@ public class DigitRecogniser2 {
             for(int i=0;i<croppedMats.length;i++){
                 for(int j=0;j<croppedMats[0].length;j++){
                     int number = trainer.data[i][j];
+                    if(!mapDigitPics.containsKey(number)) mapDigitPics.put(number,croppedMats[i][j].clone());
                     if(finalMap.containsKey(number)){
                         float newPercent =  (float)1/(countMap.get(number)+1);
                         Mat before = finalMap.get(number);
@@ -178,10 +179,8 @@ public class DigitRecogniser2 {
 
                     Mat positive2 = new Mat(number.size(), CvType.CV_8UC1);
 //                    Core.multiply(matLearnedB, numberB, positive2);
-                    Core.subtract(matLearnedB,numberB, positive2);
-                    MainActivity.setDebugImage(positive2);
-
-
+                    Core.subtract(matLearnedB, numberB, positive2);
+//                    MainActivity.setDebugImage(positive2);
 
                 }
             }
@@ -199,9 +198,10 @@ public class DigitRecogniser2 {
         Logg.d(TAG,"Error Count in detecting correct numbers : "+errorCount);
 
 
-        //Get solved Solution
-        int[][] solved = SudokuAI.getSolved(digits);
-        GenUtils.printBoard(solved);
+
+
+
+
         return digits;
     }
 

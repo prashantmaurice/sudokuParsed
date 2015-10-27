@@ -17,17 +17,21 @@ public class SudokuAI {
 
     public static int[][] getSolved(int[][] question){
         int[][] result = new int[9][9];
-        int[][] resultConfirmed = new int[9][9]; //all confirmed board
+        for(int i=0;i<9;i++){
+            for(int j=0;j<9;j++) {
+                result[i][j] = question[i][j];
+            }
+        }
 
         long start = System.currentTimeMillis();
         //Solve through normal
-        solveWithoutGuessing(question);
+        solveWithoutGuessing(result);
 
         Logg.d(TAG,"SOLVED IN :"+(System.currentTimeMillis()-start)+" ms");
 
 //        isSolvable(question);
 
-        return question;
+        return result;
     }
 
     private static void solveWithoutGuessing(int[][] result) {
