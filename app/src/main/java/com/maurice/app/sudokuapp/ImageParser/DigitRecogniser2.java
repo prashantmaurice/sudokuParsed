@@ -4,12 +4,15 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.util.Log;
 
+import com.maurice.app.sudokuapp.MainActivity;
 import com.maurice.app.sudokuapp.SudokuAI;
 import com.maurice.app.sudokuapp.utils.Logg;
 
 import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
+import org.opencv.core.Size;
+import org.opencv.imgproc.Imgproc;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -100,48 +103,54 @@ public class DigitRecogniser2 {
         if(mat==null) return 0;
         int probableDigit = 0;
         int highestMatch = 0;
-
+        int SCALE_SIZE = 10;//px to which image is scaled to find average brightness
 
         long startTime;
         for(int i=1;i<10;i++) {
-            Log.d(TAG, "SIZE " + mat.width());
-            Log.d(TAG, "SIZE " + mat.width());
+//            Log.d(TAG, "SIZE " + mat.width());
+//            Log.d(TAG, "SIZE " + mat.width());
             startTime = System.currentTimeMillis();
             Mat positive = new Mat(mat.size(), CvType.CV_8UC1);
+            Mat positiveSmall = new Mat(new Size(SCALE_SIZE,SCALE_SIZE), CvType.CV_8UC1);
             Mat negative = positive.clone();
+            Mat negative2 = positive.clone();
+            Mat negativeSmall = new Mat(new Size(SCALE_SIZE,SCALE_SIZE), CvType.CV_8UC1);
             Mat matLearned = finalMap.get(i);
-            Log.d(TAG, "REACH0 " + (System.currentTimeMillis() - startTime) + " ms");
+//            Log.d(TAG, "REACH0 " + (System.currentTimeMillis() - startTime) + " ms");
             Core.multiply(matLearned, mat, positive);
-            Core.subtract(mat,matLearned, negative);
-            Log.d(TAG, "REACH1 " + (System.currentTimeMillis() - startTime) + " ms");
+            Core.subtract(matLearned, mat, negative);
+            Core.subtract(mat,matLearned, negative2);
+//            Log.d(TAG, "REACH1 " + (System.currentTimeMillis() - startTime) + " ms ");
             int sumPos = 0;
-            for (int x = 0; x <= positive.rows(); x++) {
-                for (int y = 0; y <= positive.cols(); y++) {
-                    double pos[] = positive.get(y, x);
+            Imgproc.resize(positive,positiveSmall,new Size(SCALE_SIZE,SCALE_SIZE));
+            for (int x = 0; x <= positiveSmall.rows(); x++) {
+                for (int y = 0; y <= positiveSmall.cols(); y++) {
+                    double pos[] = positiveSmall.get(y, x);
                     if (pos != null) {
                         sumPos += pos[0];
                     }
 
                 }
             }
-            Log.d(TAG, "REACH2 " + (System.currentTimeMillis() - startTime) + " ms");
+//            Log.d(TAG, "REACH2 " + (System.currentTimeMillis() - startTime) + " ms ");
             int sumNeg = 0;
-            for (int x = 0; x <= negative.rows(); x++) {
-                for (int y = 0; y <= negative.cols(); y++) {
-                    double pos[] = negative.get(y, x);
+            Imgproc.resize(negative, negativeSmall, new Size(SCALE_SIZE, SCALE_SIZE));
+            for (int x = 0; x <= negativeSmall.rows(); x++) {
+                for (int y = 0; y <= negativeSmall.cols(); y++) {
+                    double pos[] = negativeSmall.get(y, x);
                     if (pos != null) {
                         sumNeg += pos[0];
                     }
                 }
             }
-            Log.d(TAG, "REACH3 " + (System.currentTimeMillis() - startTime) + " ms");
+//            Log.d(TAG, "REACH3 " + (System.currentTimeMillis() - startTime) + " ms");
             Logg.d("MATCH POS", "" + i + " : " + sumPos + " = " + sumNeg);
             Logg.d("MATCH NEG", "" + i + " : " + (sumPos - sumNeg));
             if (highestMatch < (sumPos - 2*sumNeg)) {
                 highestMatch = (sumPos - 2*sumNeg);
                 probableDigit = i;
             }
-            Log.d(TAG, "REACH4 " + (System.currentTimeMillis() - startTime) + " ms");
+//            Log.d(TAG, "REACH4 " + (System.currentTimeMillis() - startTime) + " ms");
         }
         Log.d(TAG, "RECOGNISED " +probableDigit+",");
         return probableDigit;
@@ -154,10 +163,43 @@ public class DigitRecogniser2 {
         for(int i=0;i<numbersCrop.length;i++){
             for(int j=0;j<numbersCrop[0].length;j++){
                 digits[i][j] = recogniseDigit(numbersCrop[i][j]);
+                Log.d(TAG, "RECOGNISED " + digits[i][j] + " : " + i + "," + j);
+
+                //DEBUG TESTING
+                if(i==0&&j==6){
+                    Mat matLearned = finalMap.get(6);
+                    Mat number = numbersCrop[i][j];
+                    Mat matLearnedB = new Mat(matLearned.size(), CvType.CV_8UC1);
+                    Imgproc.threshold(matLearned, matLearnedB, 100, 255, Imgproc.THRESH_BINARY);
+
+                    Mat numberB = new Mat(number.size(), CvType.CV_8UC1);
+                    Imgproc.threshold(number, numberB, 100, 255, Imgproc.THRESH_BINARY);
+
+
+                    Mat positive2 = new Mat(number.size(), CvType.CV_8UC1);
+//                    Core.multiply(matLearnedB, numberB, positive2);
+                    Core.subtract(matLearnedB,numberB, positive2);
+                    MainActivity.setDebugImage(positive2);
+
+
+
+                }
             }
         }
 
+        //Print results
         GenUtils.printBoard(digits);
+        int errorCount = 0;
+        int[][] solution = TrainSet.getInstance(mContext).sampleProblemArr.get(0).data;
+        for(int i=0;i<digits.length;i++){
+            for(int j=0;j<digits[0].length;j++){
+                if(digits[i][j]!=solution[i][j])errorCount++;
+            }
+        }
+        Logg.d(TAG,"Error Count in detecting correct numbers : "+errorCount);
+
+
+        //Get solved Solution
         int[][] solved = SudokuAI.getSolved(digits);
         GenUtils.printBoard(solved);
         return digits;

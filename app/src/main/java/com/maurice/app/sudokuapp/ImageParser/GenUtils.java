@@ -80,5 +80,6 @@ public class GenUtils {
             text += Arrays.toString(digits[i])+"\n";
         }
         Logg.d("BOARD","=\n"+text);
+//        TrainSet.getInstance()
     }
 }

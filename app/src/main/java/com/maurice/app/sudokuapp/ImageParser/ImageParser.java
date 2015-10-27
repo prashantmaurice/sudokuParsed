@@ -46,7 +46,7 @@ public class ImageParser {
     //Image Processing Params
     double lineDetect_threshold1 = 50;
     double lineDetect_threshold2 = 200;
-    int digit_learn_size = 50;
+    int digit_learn_size = 40;
 
     //board Params
     static final int BOARD_SIZE = 9;
@@ -104,7 +104,7 @@ public class ImageParser {
         DigitRecogniser2 digitRecogniser2 = DigitRecogniser2.getInstance(mContext);
         digitRecogniser2.recogniseDigits(numbersCrop);
 //        digitRecogniser2.recogniseDigit(numbersCrop[0][2]);
-        return numbersCrop[0][0];
+        return numbersCrop[0][6];
 //        return extractROI(numbersCrop[0][2]);
 
 
@@ -219,6 +219,7 @@ public class ImageParser {
         //Create an adaptive threshold for parsing and inverting image
         Mat src3 = new Mat(srcGry.size(), CvType.CV_8UC1);
         Imgproc.adaptiveThreshold(srcGry, src3, 255, Imgproc.ADAPTIVE_THRESH_MEAN_C, Imgproc.THRESH_BINARY_INV, 15, 4);
+//        Imgproc.threshold(srcGry, src3, 100,255, Imgproc.THRESH_BINARY_INV);
         //TODO : may be do a floodfill here
 
         //CHECK : by here image should be square and perspective propererd

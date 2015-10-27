@@ -87,7 +87,7 @@ public class SudokuAI {
                     }
                 }
                 if(count == 1){
-                    Logg.d(TAG,"Found digit from rows match");
+//                    Logg.d(TAG,"Found digit from rows match");
                     result[i][jFound] = n;
                     return true;
                 }
@@ -106,7 +106,7 @@ public class SudokuAI {
                     }
                 }
                 if(count == 1){
-                    Logg.d(TAG,"Found digit from cols match");
+//                    Logg.d(TAG,"Found digit from cols match");
                     result[jFound][i] = n;
                     return true;
                 }
@@ -136,7 +136,7 @@ public class SudokuAI {
                     }
 
                     if(count == 1){
-                        Logg.d(TAG,"Found digit from grids match");
+//                        Logg.d(TAG,"Found digit from grids match");
                         result[iFound][jFound] = n;
                         return true;
                     }
@@ -157,7 +157,7 @@ public class SudokuAI {
             }
         }
 
-        Logg.d(TAG,"Creating probables map for start...");
+//        Logg.d(TAG,"Creating probables map for start...");
         for(int i=0;i<9;i++){
             for(int j=0;j<9;j++){
                 if(result[i][j]!=0) continue;
