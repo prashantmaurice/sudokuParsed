@@ -12,6 +12,7 @@ import android.widget.ImageView;
 import com.maurice.app.sudokuapp.ImageParser.DigitRecogniser2;
 import com.maurice.app.sudokuapp.ImageParser.GenUtils;
 import com.maurice.app.sudokuapp.ImageParser.ImageParser;
+import com.maurice.app.sudokuapp.ImageParser.TrainSet;
 
 import org.opencv.android.OpenCVLoader;
 
@@ -45,13 +46,20 @@ public class MainActivity extends AppCompatActivity{
             Bitmap sourceBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.sample2);
 
             //Get rendered bitmap
-            Bitmap renderedBitmap = imageparser.parseBitmap(sourceBitmap);
+//            Bitmap renderedBitmap = imageparser.parseBitmap(sourceBitmap);
 
             //Show rendered bitmap
-            imageView.setImageBitmap(renderedBitmap);
+//            imageView.setImageBitmap(renderedBitmap);
 //            imageView.setImageBitmap(digitRecogniser2.trainSet.trainDataArr.get(0).bitmap);
             imageView2.setImageBitmap(GenUtils.convertMatToBitmap(digitRecogniser2.finalMap.get(5)));
             imageView3.setImageResource(R.drawable.train_3);
+
+            //Solve for sample problem
+            int[][] digits = TrainSet.getInstance(this).sampleProblemArr.get(0).data;
+            GenUtils.printBoard(digits);
+            int[][] solved = SudokuAI.getSolved(digits);
+            GenUtils.printBoard(solved);
+
         }else{
             Log.e("ERROR","OpenCVLoader not initialized");
         }

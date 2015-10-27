@@ -12,10 +12,11 @@ import java.util.ArrayList;
  * Created by maurice on 26/10/15.
  */
 public class TrainSet {
-
+    static TrainSet instance;
     public ArrayList<TrainDataAnswer> trainDataArr = new ArrayList<>();
+    public ArrayList<TrainDataAnswer> sampleProblemArr = new ArrayList<>();
 
-    public TrainSet(Context context){
+    private TrainSet(Context context){
 
         //train set 1
 //        TrainDataAnswer train1 = new TrainDataAnswer();
@@ -60,6 +61,36 @@ public class TrainSet {
 //        train4.data[8] = new int[]{3,4,2,1,8,9,7,6,5};
 //        trainDataArr.add(train4);
 
+
+        //Sample Problem
+        TrainDataAnswer prob1 = new TrainDataAnswer();
+        prob1.bitmap = BitmapFactory.decodeResource(context.getResources(), R.drawable.train_3);
+        prob1.data[0] = new int[]{0, 0, 6, 0, 0, 8, 5, 0, 0};
+        prob1.data[1] = new int[]{0, 0, 0, 0, 7, 0, 6, 1, 3};
+        prob1.data[2] = new int[]{0, 0, 0, 0, 0, 0, 0, 0, 9};
+        prob1.data[3] = new int[]{0, 0, 0, 0, 9, 0, 0, 0, 1};
+        prob1.data[4] = new int[]{0, 0, 1, 0, 0, 0, 8, 0, 0};
+        prob1.data[5] = new int[]{4, 0, 0, 5, 3, 0, 0, 0, 0};
+        prob1.data[6] = new int[]{1, 0, 7, 0, 5, 3, 0, 0, 0};
+        prob1.data[7] = new int[]{0, 5, 0, 0, 6, 4, 0, 0, 0};
+        prob1.data[8] = new int[]{3, 0, 0, 1, 0, 0, 0, 6, 0};
+        sampleProblemArr.add(prob1);
+
+        //Sample Problem
+        TrainDataAnswer prob2 = new TrainDataAnswer();
+        prob2.bitmap = BitmapFactory.decodeResource(context.getResources(), R.drawable.train_3);
+        prob2.data[0] = new int[]{2,9,6,3,1,8,5,7,4};
+        prob2.data[1] = new int[]{5,8,0,9,7,2,6,1,3};
+        prob2.data[2] = new int[]{7,1,3,6,4,5,2,8,9};
+        prob2.data[3] = new int[]{6,2,5,8,9,7,3,4,1};
+        prob2.data[4] = new int[]{9,3,1,4,2,6,8,5,7};
+        prob2.data[5] = new int[]{4,7,8,5,3,1,9,2,6};
+        prob2.data[6] = new int[]{1,6,7,2,5,3,4,9,8};
+        prob2.data[7] = new int[]{8,5,9,7,6,4,1,3,2};
+        prob2.data[8] = new int[]{3,4,2,1,8,9,7,6,5};
+        sampleProblemArr.add(prob2);
+
+
     }
 
     public class TrainDataAnswer{
@@ -68,6 +99,10 @@ public class TrainSet {
     }
 
 
+    public static TrainSet getInstance(Context context){
+        if(instance==null) instance = new TrainSet(context);
+        return instance;
+    }
 
 
 

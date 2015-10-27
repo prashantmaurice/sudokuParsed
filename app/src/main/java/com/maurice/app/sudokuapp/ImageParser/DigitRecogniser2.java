@@ -31,7 +31,7 @@ public class DigitRecogniser2 {
 
     private DigitRecogniser2(Context context){
         mContext = context;
-        trainSet = new TrainSet(mContext);
+        trainSet = TrainSet.getInstance(mContext);
 
         //setupTrainData
         setupTrainData();
