@@ -4,12 +4,13 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.util.Log;
 
-import com.maurice.app.sudokuapp.SudokuAI;
+import com.maurice.app.sudokuapp.MainActivity;
 import com.maurice.app.sudokuapp.utils.Logg;
 
 import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
+import org.opencv.core.Scalar;
 import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
 
@@ -72,14 +73,21 @@ public class DigitRecogniser2 {
     }
 
     private void setupTrainData() {
+//        for(int i=1;i<10;i++){
+//            finalMap.put(i,new Mat(new Size(50,50),CvType.CV_8UC1));
+//        }
+
+
         Logg.d(TAG, "Setting Up training data");
         ImageParser imageParser = ImageParser.getInstance(mContext);
+        HashMap<Integer, Integer> countMap = new HashMap<>();
         for(TrainSet.TrainDataAnswer trainer : trainSet.trainDataArr){
             Mat mat = GenUtils.convertBitmapToMat(trainer.bitmap);
             Mat[][] croppedMats = imageParser.getCroppedMats(mat);
-            HashMap<Integer, Integer> countMap = new HashMap<>();
+//            if(croppedMats.length!=9||croppedMats[0].length!=9) continue;
             for(int i=0;i<croppedMats.length;i++){
                 for(int j=0;j<croppedMats[0].length;j++){
+                    if(i>8||j>8) continue;
                     int number = trainer.data[i][j];
                     if(!mapDigitPics.containsKey(number)) mapDigitPics.put(number,croppedMats[i][j].clone());
                     if(finalMap.containsKey(number)){
@@ -120,35 +128,21 @@ public class DigitRecogniser2 {
 //            Log.d(TAG, "REACH0 " + (System.currentTimeMillis() - startTime) + " ms");
             Core.multiply(matLearned, mat, positive);
             Core.subtract(matLearned, mat, negative);
-            Core.subtract(mat,matLearned, negative2);
+            Core.subtract(mat, matLearned, negative2);
+            Core.add(negative, negative2, negative);
 //            Log.d(TAG, "REACH1 " + (System.currentTimeMillis() - startTime) + " ms ");
-            int sumPos = 0;
             Imgproc.resize(positive,positiveSmall,new Size(SCALE_SIZE,SCALE_SIZE));
-            for (int x = 0; x <= positiveSmall.rows(); x++) {
-                for (int y = 0; y <= positiveSmall.cols(); y++) {
-                    double pos[] = positiveSmall.get(y, x);
-                    if (pos != null) {
-                        sumPos += pos[0];
-                    }
-
-                }
-            }
+            int sumPos = GenUtils.brightness(positiveSmall);
 //            Log.d(TAG, "REACH2 " + (System.currentTimeMillis() - startTime) + " ms ");
-            int sumNeg = 0;
             Imgproc.resize(negative, negativeSmall, new Size(SCALE_SIZE, SCALE_SIZE));
-            for (int x = 0; x <= negativeSmall.rows(); x++) {
-                for (int y = 0; y <= negativeSmall.cols(); y++) {
-                    double pos[] = negativeSmall.get(y, x);
-                    if (pos != null) {
-                        sumNeg += pos[0];
-                    }
-                }
-            }
+            int sumNeg = GenUtils.brightness(negativeSmall);
+
 //            Log.d(TAG, "REACH3 " + (System.currentTimeMillis() - startTime) + " ms");
             Logg.d("MATCH POS", "" + i + " : " + sumPos + " = " + sumNeg);
             Logg.d("MATCH NEG", "" + i + " : " + (sumPos - sumNeg));
-            if (highestMatch < (sumPos - 2*sumNeg)) {
-                highestMatch = (sumPos - 2*sumNeg);
+//            sumPos = 10000;
+            if (highestMatch < (sumPos - sumNeg) && sumPos>200) {
+                highestMatch = (sumPos - sumNeg);
                 probableDigit = i;
             }
 //            Log.d(TAG, "REACH4 " + (System.currentTimeMillis() - startTime) + " ms");
@@ -165,26 +159,66 @@ public class DigitRecogniser2 {
             for(int j=0;j<numbersCrop[0].length;j++){
                 digits[i][j] = recogniseDigit(numbersCrop[i][j]);
                 Log.d(TAG, "RECOGNISED " + digits[i][j] + " : " + i + "," + j);
-
-                //DEBUG TESTING
-                if(i==0&&j==6){
-                    Mat matLearned = finalMap.get(6);
-                    Mat number = numbersCrop[i][j];
-                    Mat matLearnedB = new Mat(matLearned.size(), CvType.CV_8UC1);
-                    Imgproc.threshold(matLearned, matLearnedB, 100, 255, Imgproc.THRESH_BINARY);
-
-                    Mat numberB = new Mat(number.size(), CvType.CV_8UC1);
-                    Imgproc.threshold(number, numberB, 100, 255, Imgproc.THRESH_BINARY);
-
-
-                    Mat positive2 = new Mat(number.size(), CvType.CV_8UC1);
-//                    Core.multiply(matLearnedB, numberB, positive2);
-                    Core.subtract(matLearnedB, numberB, positive2);
-//                    MainActivity.setDebugImage(positive2);
-
-                }
             }
         }
+
+        //DEBUG
+        int SCALE_SIZE = 10;
+        if(true){
+            int i = 2, j=0;
+            Mat matLearned = finalMap.get(2);
+            Mat number = numbersCrop[i][j];
+
+            Mat positive = new Mat(number.size(), CvType.CV_8UC1,new Scalar(0));
+            Mat positiveSmall = new Mat(new Size(SCALE_SIZE,SCALE_SIZE), CvType.CV_8UC1, new Scalar(0));
+            Mat negative = new Mat(number.size(), CvType.CV_8UC1,new Scalar(0));
+            Mat negativeSmall = new Mat(new Size(SCALE_SIZE,SCALE_SIZE), CvType.CV_8UC1, new Scalar(0));
+            Mat negative2 = new Mat(number.size(), CvType.CV_8UC1,new Scalar(0));
+            Mat negativeSmall2 = new Mat(new Size(SCALE_SIZE,SCALE_SIZE), CvType.CV_8UC1, new Scalar(0));
+
+            Core.multiply(matLearned, number, positive);
+            Core.subtract(matLearned, number, negative);
+            Core.subtract(number, matLearned, negative2);
+            Core.add(negative, negative2, negative);
+            Imgproc.resize(positive, positiveSmall, new Size(SCALE_SIZE, SCALE_SIZE));
+            Imgproc.resize(negative, negativeSmall, new Size(SCALE_SIZE, SCALE_SIZE));
+            Imgproc.resize(negative2, negativeSmall2, new Size(SCALE_SIZE, SCALE_SIZE));
+
+            MainActivity.setDebugImage(positive, 4);
+            MainActivity.setDebugImage(negative, 5);
+            MainActivity.setDebugImage(positiveSmall, 6);
+            MainActivity.setDebugImage(negativeSmall, 7);
+            MainActivity.setDebugText("" + GenUtils.brightness(positiveSmall) + "-" + GenUtils.brightness(negativeSmall), 6);
+            MainActivity.setDebugText("" + (GenUtils.brightness(positiveSmall) -GenUtils.brightness(negativeSmall)), 7);
+        }
+        if(true){
+            int i = 1, j=0;
+            Mat matLearned = finalMap.get(7);
+            Mat number = numbersCrop[i][j];
+
+            Mat positive = new Mat(number.size(), CvType.CV_8UC1,new Scalar(0));
+            Mat positiveSmall = new Mat(new Size(SCALE_SIZE,SCALE_SIZE), CvType.CV_8UC1, new Scalar(0));
+            Mat negative = new Mat(number.size(), CvType.CV_8UC1,new Scalar(0));
+            Mat negativeSmall = new Mat(new Size(SCALE_SIZE,SCALE_SIZE), CvType.CV_8UC1, new Scalar(0));
+            Mat negative2 = new Mat(number.size(), CvType.CV_8UC1,new Scalar(0));
+            Mat negativeSmall2 = new Mat(new Size(SCALE_SIZE,SCALE_SIZE), CvType.CV_8UC1, new Scalar(0));
+
+            Core.multiply(matLearned, number, positive);
+            Core.subtract(matLearned, number, negative);
+            Core.subtract(number, matLearned, negative2);
+            Core.add(negative, negative2, negative);
+            Imgproc.resize(positive, positiveSmall, new Size(SCALE_SIZE, SCALE_SIZE));
+            Imgproc.resize(negative, negativeSmall, new Size(SCALE_SIZE, SCALE_SIZE));
+            Imgproc.resize(negative2, negativeSmall2, new Size(SCALE_SIZE, SCALE_SIZE));
+
+            MainActivity.setDebugImage(positiveSmall, 8);
+            MainActivity.setDebugImage(negativeSmall, 9);
+            MainActivity.setDebugText("" + GenUtils.brightness(positiveSmall) + "-" + GenUtils.brightness(negativeSmall), 8);
+            MainActivity.setDebugText("" + (GenUtils.brightness(positiveSmall) - GenUtils.brightness(negativeSmall)), 9);
+//            MainActivity.setDebugImage(negativeSmall2, 11);
+        }
+
+
 
         //Print results
         GenUtils.printBoard(digits);

@@ -82,4 +82,18 @@ public class GenUtils {
         Logg.d("BOARD","=\n"+text);
 //        TrainSet.getInstance()
     }
+
+    public static int brightness(Mat src){
+        int sumPos = 0;
+        for (int x = 0; x <= src.rows(); x++) {
+            for (int y = 0; y <= src.cols(); y++) {
+                double pos[] = src.get(y, x);
+                if (pos != null) {
+                    sumPos += pos[0];
+                }
+
+            }
+        }
+        return sumPos;
+    }
 }

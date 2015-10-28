@@ -61,6 +61,20 @@ public class TrainSet {
 //        train4.data[8] = new int[]{3,4,2,1,8,9,7,6,5};
 //        trainDataArr.add(train4);
 
+//        train set 6
+        TrainDataAnswer train6 = new TrainDataAnswer();
+        train6.bitmap = BitmapFactory.decodeResource(context.getResources(), R.drawable.train_6);
+        train6.data[0] = new int[]{1,8,4,9,6,3,7,2,5};
+        train6.data[1] = new int[]{5,6,2,7,4,8,3,1,9};
+        train6.data[2] = new int[]{3,9,7,5,1,2,8,6,4};
+        train6.data[3] = new int[]{2,3,9,6,5,7,1,4,8};
+        train6.data[4] = new int[]{7,5,6,1,8,4,2,9,3};
+        train6.data[5] = new int[]{4,1,8,2,3,9,6,5,7};
+        train6.data[6] = new int[]{9,4,1,3,7,6,5,8,2};
+        train6.data[7] = new int[]{6,2,3,8,9,5,4,7,1};
+        train6.data[8] = new int[]{8,7,5,4,2,1,9,3,6};
+        trainDataArr.add(train6);
+
 
         //Sample Problem
         TrainDataAnswer prob1 = new TrainDataAnswer();
@@ -89,6 +103,20 @@ public class TrainSet {
         prob2.data[7] = new int[]{8,5,9,7,6,4,1,3,2};
         prob2.data[8] = new int[]{3,4,2,1,8,9,7,6,5};
         sampleProblemArr.add(prob2);
+
+        //Sample Problem
+        TrainDataAnswer prob5 = new TrainDataAnswer();
+        prob5.bitmap = BitmapFactory.decodeResource(context.getResources(), R.drawable.sample5);
+        prob5.data[0] = new int[]{6,4,0,0,1,3,9,0,0};
+        prob5.data[1] = new int[]{1,0,0,0,2,6,4,0,0};
+        prob5.data[2] = new int[]{0,2,9,0,4,5,7,0,0};
+        prob5.data[3] = new int[]{0,0,2,0,0,0,8,3,0};
+        prob5.data[4] = new int[]{8,6,0,0,3,7,0,1,9};
+        prob5.data[5] = new int[]{7,0,0,2,0,9,0,0,0};
+        prob5.data[6] = new int[]{0,0,1,3,0,0,6,9,0};
+        prob5.data[7] = new int[]{9,3,6,4,0,8,0,2,0};
+        prob5.data[8] = new int[]{0,0,5,0,0,0,0,0,0};
+        sampleProblemArr.add(prob5);
 
 
     }
