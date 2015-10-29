@@ -89,7 +89,7 @@ public class ImageParser {
 
         //get NumberImages From Boxes
         Mat[][] numbersCrop = getCroppedMats(src);
-        MainActivity.setDebugImage(numbersCrop[1][0],0);
+        MainActivity.setDebugImage(numbersCrop[1][7],0);
 
 //        if(true)return getdebug(src);
 //        Mat colorPic = new Mat();
@@ -293,6 +293,7 @@ public class ImageParser {
         for(LineSegment lineSegment : filteredSegments){
             Imgproc.line(src3, lineSegment.point1, lineSegment.point2, new Scalar(255, 0,0), 2);
         }
+        MainActivity.setMainImage(src3);
 
         //Remove original lines through flood fill
         Size size = new Size(src3.size().width+2,src3.size().height+2);
@@ -301,8 +302,14 @@ public class ImageParser {
         Scalar lowDiff = new Scalar(0,0,0);
         Scalar highDiff = new Scalar(120,120,120);
         Logg.d(TAG,"Started Floodfliiing...");
+
+        //Startflood filling at few points
+        Imgproc.floodFill(src3, mask, points[1][0], new Scalar(0, 200, 0), rect, lowDiff, highDiff, 0);
         Imgproc.floodFill(src3, mask, points[0][0], new Scalar(0, 200, 0), rect, lowDiff, highDiff, 0);
+        Imgproc.floodFill(src3, mask, points[5][5], new Scalar(0, 200, 0), rect, lowDiff, highDiff, 0);
+        Imgproc.floodFill(src3, mask, points[0][1], new Scalar(0, 200, 0), rect, lowDiff, highDiff, 0);
         Logg.d(TAG, "Ended Floodfliiing....");
+        MainActivity.setMainImage(src3);
 
         //get ImagesArray
         Mat[][] boxesCrop = getIndividualBoxes(src3, rectangles);

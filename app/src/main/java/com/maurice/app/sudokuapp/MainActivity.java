@@ -49,7 +49,7 @@ public class MainActivity extends AppCompatActivity{
 
 
             //Source Image Bitmap
-            Bitmap sourceBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.sample2);
+            Bitmap sourceBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.train_6);
 
             //Get rendered bitmap
             Bitmap renderedBitmap = imageparser.parseBitmap(sourceBitmap);
@@ -58,8 +58,8 @@ public class MainActivity extends AppCompatActivity{
             imageView.setImageBitmap(renderedBitmap);
 //            imageView.setImageBitmap(digitRecogniser2.trainSet.trainDataArr.get(0).bitmap);
             imageView3.setImageBitmap(GenUtils.convertMatToBitmap(digitRecogniser2.finalMap.get(2)));
-            MainActivity.setDebugImage(digitRecogniser2.finalMap.get(2),2);
-            MainActivity.setDebugImage(digitRecogniser2.finalMap.get(7),3);
+            MainActivity.setDebugImage(digitRecogniser2.finalMap.get(6),2);
+            MainActivity.setDebugImage(digitRecogniser2.finalMap.get(8),3);
 //            imageView3.setImageResource(R.drawable.train_3);
 
             //Solve for sample problem

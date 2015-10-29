@@ -165,8 +165,8 @@ public class DigitRecogniser2 {
         //DEBUG
         int SCALE_SIZE = 10;
         if(true){
-            int i = 2, j=0;
-            Mat matLearned = finalMap.get(2);
+            int i = 0, j=2;
+            Mat matLearned = finalMap.get(8);
             Mat number = numbersCrop[i][j];
 
             Mat positive = new Mat(number.size(), CvType.CV_8UC1,new Scalar(0));
@@ -192,8 +192,8 @@ public class DigitRecogniser2 {
             MainActivity.setDebugText("" + (GenUtils.brightness(positiveSmall) -GenUtils.brightness(negativeSmall)), 7);
         }
         if(true){
-            int i = 1, j=0;
-            Mat matLearned = finalMap.get(7);
+            int i = 0, j=2;
+            Mat matLearned = finalMap.get(6);
             Mat number = numbersCrop[i][j];
 
             Mat positive = new Mat(number.size(), CvType.CV_8UC1,new Scalar(0));
